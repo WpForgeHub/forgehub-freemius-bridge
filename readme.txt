@@ -4,7 +4,7 @@ Tags: freemius, woocommerce, webhook, license manager, saas bridge
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -41,6 +41,13 @@ Selling WordPress plugins via Freemius Merchant of Record (MoR) gives you global
 4. Add the Webhook URL (`https://yourdomain.com/wp-json/wpfh/v1/freemius-webhook`) to your Freemius Developer Dashboard.
 
 == Changelog ==
+
+= 1.1.0 =
+* Feature (Pro): Automated Webhook Replay Queue with exponential backoff and dead-letter admin controls.
+* Feature (Pro): Real-time Multi-Currency rate converter (USD, EUR, GBP, CAD, AUD).
+* Feature (Pro): Agency Multi-Seat delegation and child seat allocation.
+* Feature (Pro): Affiliate Cookie Bridge with 30-day tracking cookie persistence.
+* Enhancement: Freemius license filter integration (fs_can_use_premium_code__wpfh-freemius-bridge).
 
 = 1.0.0 =
 * Initial public release.

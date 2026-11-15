@@ -1,0 +1,182 @@
+/**
+ * WPFH Freemius Bridge Styles
+ */
+
+.wpfh-pricing-bridge {
+	margin: 32px 0;
+	font-family: inherit;
+}
+
+.wpfh-pricing-toggle-wrap {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 28px;
+	background: #0f172a;
+	padding: 6px;
+	border-radius: 9999px;
+	width: fit-content;
+	margin-left: auto;
+	margin-right: auto;
+	border: 1px solid #1e293b;
+}
+
+.wpfh-cycle-btn {
+	background: transparent;
+	border: none;
+	color: #94a3b8;
+	padding: 8px 18px;
+	border-radius: 9999px;
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.wpfh-cycle-btn.active {
+	background: #1e293b;
+	color: #f8fafc;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.wpfh-save-tag {
+	background: #10b981;
+	color: #042f2e;
+	font-size: 10px;
+	font-weight: 800;
+	padding: 2px 6px;
+	border-radius: 4px;
+	margin-left: 4px;
+	text-transform: uppercase;
+}
+
+.wpfh-tier-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 20px;
+}
+
+@media (max-width: 900px) {
+	.wpfh-tier-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+.wpfh-tier-card {
+	background: #0f172a;
+	border: 1px solid #1e293b;
+	border-radius: 14px;
+	padding: 28px;
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.wpfh-tier-card:hover {
+	transform: translateY(-4px);
+	border-color: #38bdf8;
+}
+
+.wpfh-tier-card.featured {
+	border-color: #10b981;
+	background: #111e38;
+}
+
+.wpfh-popular-badge {
+	position: absolute;
+	top: -12px;
+	left: 50%;
+	transform: translateX(-50%);
+	background: #10b981;
+	color: #ffffff;
+	font-size: 11px;
+	font-weight: 800;
+	padding: 4px 12px;
+	border-radius: 9999px;
+	letter-spacing: 0.05em;
+}
+
+.wpfh-tier-header h4 {
+	margin: 0 0 6px 0;
+	font-size: 18px;
+	color: #f8fafc;
+}
+
+.wpfh-tier-desc {
+	margin: 0 0 20px 0;
+	font-size: 13px;
+	color: #94a3b8;
+	min-height: 36px;
+}
+
+.wpfh-tier-price {
+	display: flex;
+	align-items: baseline;
+	gap: 4px;
+	margin-bottom: 24px;
+}
+
+.wpfh-currency {
+	font-size: 24px;
+	font-weight: 700;
+	color: #38bdf8;
+}
+
+.wpfh-amount {
+	font-size: 38px;
+	font-weight: 800;
+	color: #f8fafc;
+	line-height: 1;
+}
+
+.wpfh-period {
+	font-size: 13px;
+	color: #64748b;
+}
+
+.wpfh-tier-features {
+	list-style: none;
+	padding: 0;
+	margin: 0 0 28px 0;
+	flex-grow: 1;
+}
+
+.wpfh-tier-features li {
+	font-size: 13px;
+	color: #cbd5e1;
+	margin-bottom: 12px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.wpfh-buy-btn {
+	background: #1e293b;
+	color: #f8fafc;
+	border: 1px solid #334155;
+	padding: 12px 20px;
+	border-radius: 8px;
+	font-weight: 700;
+	font-size: 14px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	width: 100%;
+}
+
+.wpfh-buy-btn:hover {
+	background: #334155;
+	border-color: #64748b;
+}
+
+.wpfh-buy-btn.featured {
+	background: #10b981;
+	border-color: #10b981;
+	color: #022c22;
+}
+
+.wpfh-buy-btn.featured:hover {
+	background: #059669;
+	color: #ffffff;
+}

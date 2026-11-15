@@ -39,10 +39,10 @@ if ( ! function_exists( 'wpfh_fb_fs' ) ) {
 
 			if ( function_exists( 'fs_dynamic_init' ) ) {
 				$wpfh_fb_fs = fs_dynamic_init( array(
-					'id'             => '17962',
+					'id'             => '45085',
 					'slug'           => 'wpfh-freemius-bridge',
 					'type'           => 'plugin',
-					'public_key'     => 'pk_dummy_fb_placeholder_key',
+					'public_key'     => 'pk_e7ed05bc2b2a042c51a1f56353eb6',
 					'is_premium'     => false,
 					'has_addons'     => false,
 					'has_paid_plans' => true,

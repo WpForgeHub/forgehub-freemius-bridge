@@ -3,6 +3,7 @@
 [![License: GPL v2+](https://img.shields.io/badge/License-GPL%20v2%2B-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 [![WordPress](https://img.shields.io/badge/WordPress-6.0%2B-blue.svg)](https://wordpress.org/)
 [![WooCommerce HPOS](https://img.shields.io/badge/WooCommerce%20HPOS-Compatible-green.svg)](https://woocommerce.com/)
+[![Release](https://img.shields.io/badge/Release-v1.1.0-purple.svg)](https://github.com/WpForgeHub/wpfh-freemius-bridge/releases/tag/v1.1.0)
 
 **WPFH Freemius Bridge** bridges the gap between your self-hosted WooCommerce store and Freemius Merchant of Record (MoR).
 

@@ -117,6 +117,13 @@ final class WPFH_Freemius_Bridge {
 		require_once WPFH_FB_PATH . 'includes/class-wpfh-fb-checkout-modal.php';
 		require_once WPFH_FB_PATH . 'includes/class-wpfh-fb-pricing-table.php';
 		require_once WPFH_FB_PATH . 'includes/class-wpfh-fb-admin.php';
+		require_once WPFH_FB_PATH . 'includes/class-wpfh-fb-gateway.php';
+
+		// Register WooCommerce payment gateway
+		add_filter( 'woocommerce_payment_gateways', function( $gateways ) {
+			$gateways[] = 'WC_Gateway_Freemius';
+			return $gateways;
+		} );
 
 		// Instantiate Free modules
 		WPFH_FB_Webhook::get_instance();

@@ -52,16 +52,26 @@ class WPFH_FB_Checkout_Modal {
 		// Pass current user info if logged in
 		$user_email = '';
 		$user_name  = '';
+		$first_name = '';
+		$last_name  = '';
+		$country    = '';
 		if ( is_user_logged_in() ) {
 			$user = wp_get_current_user();
 			$user_email = $user->user_email;
 			$user_name  = $user->display_name;
+			$first_name = $user->first_name;
+			$last_name  = $user->last_name;
+			$country    = get_user_meta( $user->ID, 'billing_country', true );
 		}
 
 		wp_localize_script( 'wpfh-fb-bridge', 'wpfh_fb_config', array(
-			'ajax_url'   => admin_url( 'admin-ajax.php' ),
-			'user_email' => $user_email,
-			'user_name'  => $user_name,
+			'ajax_url'        => admin_url( 'admin-ajax.php' ),
+			'user_email'      => $user_email,
+			'user_name'       => $user_name,
+			'user_firstname'  => $first_name,
+			'user_lastname'   => $last_name,
+			'user_country'    => $country,
+			'is_user_logged'  => is_user_logged_in(),
 		) );
 	}
 }

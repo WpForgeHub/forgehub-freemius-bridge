@@ -33,16 +33,16 @@ class WPFH_FB_Admin {
 	}
 
 	public function add_settings_tab( $tabs ) {
-		$tabs['wpfh_fb'] = __( 'Freemius Bridge', 'wpfh-freemius-bridge' );
+		$tabs['wpfh_fb'] = __( 'Freemius Bridge', 'forgehub-freemius-bridge' );
 		return $tabs;
 	}
 
 	public function add_admin_menu() {
 		add_options_page(
-			__( 'Freemius Bridge', 'wpfh-freemius-bridge' ),
-			__( 'Freemius Bridge', 'wpfh-freemius-bridge' ),
+			__( 'Freemius Bridge', 'forgehub-freemius-bridge' ),
+			__( 'Freemius Bridge', 'forgehub-freemius-bridge' ),
 			'manage_options',
-			'wpfh-freemius-bridge',
+			'forgehub-freemius-bridge',
 			array( $this, 'render_standalone_settings' )
 		);
 	}
@@ -55,8 +55,8 @@ class WPFH_FB_Admin {
 
 	public function add_action_links( $links ) {
 		$settings_url  = class_exists( 'WooCommerce' ) ? admin_url( 'admin.php?page=wc-settings&tab=wpfh_fb' ) : admin_url( 'options-general.php?page=wpfh-freemius-bridge' );
-		$settings_link = '<a href="' . esc_url( $settings_url ) . '">' . __( 'Settings', 'wpfh-freemius-bridge' ) . '</a>';
-		$pro_link      = '<a href="https://wpforgehub.com/plugins/wpfh-freemius-bridge/" style="color:#10b981;font-weight:700;" target="_blank">' . __( 'Upgrade to Pro', 'wpfh-freemius-bridge' ) . '</a>';
+		$settings_link = '<a href="' . esc_url( $settings_url ) . '">' . __( 'Settings', 'forgehub-freemius-bridge' ) . '</a>';
+		$pro_link      = '<a href="https://wpforgehub.com/plugins/wpfh-freemius-bridge/" style="color:#10b981;font-weight:700;" target="_blank">' . __( 'Upgrade to Pro', 'forgehub-freemius-bridge' ) . '</a>';
 		array_unshift( $links, $settings_link, $pro_link );
 		return $links;
 	}
@@ -65,28 +65,28 @@ class WPFH_FB_Admin {
 		$webhook_url = home_url( '/wp-json/wpfh/v1/freemius-webhook' );
 		return array(
 			array(
-				'title' => __( 'Freemius Bridge Settings', 'wpfh-freemius-bridge' ),
+				'title' => __( 'Freemius Bridge Settings', 'forgehub-freemius-bridge' ),
 				'type'  => 'title',
-				'desc'  => sprintf( __( 'Synchronize Freemius transactions, subscriptions, and licenses seamlessly. Your Webhook Endpoint is: <code>%s</code>', 'wpfh-freemius-bridge' ), esc_url( $webhook_url ) ),
+				'desc'  => sprintf( __( 'Synchronize Freemius transactions, subscriptions, and licenses seamlessly. Your Webhook Endpoint is: <code>%s</code>', 'forgehub-freemius-bridge' ), esc_url( $webhook_url ) ),
 				'id'    => 'wpfh_fb_general_options',
 			),
 			array(
-				'title'   => __( 'Freemius Secret Key', 'wpfh-freemius-bridge' ),
-				'desc'    => __( 'Used to verify HMAC signature on incoming webhooks.', 'wpfh-freemius-bridge' ),
+				'title'   => __( 'Freemius Secret Key', 'forgehub-freemius-bridge' ),
+				'desc'    => __( 'Used to verify HMAC signature on incoming webhooks.', 'forgehub-freemius-bridge' ),
 				'id'      => 'wpfh_fb_secret_key',
 				'default' => 'sk_M9TizQ7:j9959KI])D7v6_Pi1C_pP',
 				'type'    => 'password',
 			),
 			array(
-				'title'   => __( 'Default Plugin ID', 'wpfh-freemius-bridge' ),
-				'desc'    => __( 'Primary Freemius plugin ID for default embeds.', 'wpfh-freemius-bridge' ),
+				'title'   => __( 'Default Plugin ID', 'forgehub-freemius-bridge' ),
+				'desc'    => __( 'Primary Freemius plugin ID for default embeds.', 'forgehub-freemius-bridge' ),
 				'id'      => 'wpfh_fb_default_plugin_id',
 				'default' => '44985',
 				'type'    => 'text',
 			),
 			array(
-				'title'   => __( 'Default Public Key', 'wpfh-freemius-bridge' ),
-				'desc'    => __( 'Primary Freemius public key for checkout initialization.', 'wpfh-freemius-bridge' ),
+				'title'   => __( 'Default Public Key', 'forgehub-freemius-bridge' ),
+				'desc'    => __( 'Primary Freemius public key for checkout initialization.', 'forgehub-freemius-bridge' ),
 				'id'      => 'wpfh_fb_default_public_key',
 				'default' => 'pk_f9a888c3be313c0bbfbf4a627ad2b',
 				'type'    => 'text',
@@ -110,8 +110,8 @@ class WPFH_FB_Admin {
 	public function render_standalone_settings() {
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Freemius Bridge Settings', 'wpfh-freemius-bridge' ); ?></h1>
-			<p><?php echo sprintf( esc_html__( 'Webhook Endpoint: %s', 'wpfh-freemius-bridge' ), '<code>' . esc_url( home_url( '/wp-json/wpfh/v1/freemius-webhook' ) ) . '</code>' ); ?></p>
+			<h1><?php esc_html_e( 'Freemius Bridge Settings', 'forgehub-freemius-bridge' ); ?></h1>
+			<p><?php echo sprintf( esc_html__( 'Webhook Endpoint: %s', 'forgehub-freemius-bridge' ), '<code>' . esc_url( home_url( '/wp-json/wpfh/v1/freemius-webhook' ) ) . '</code>' ); ?></p>
 			<?php $this->render_pro_upsell(); ?>
 		</div>
 		<?php

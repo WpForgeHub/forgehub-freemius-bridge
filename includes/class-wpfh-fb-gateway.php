@@ -15,11 +15,11 @@ class WC_Gateway_Freemius extends WC_Payment_Gateway {
 		$this->id                 = 'wpfh_freemius';
 		$this->icon               = 'https://wpforgehub.com/wp-content/themes/wpforgehub-theme/assets/images/wpfh-logo-192x192.png';
 		$this->has_fields         = false;
-		$this->method_title       = __( 'Freemius Secure Checkout', 'wpfh-freemius-bridge' );
-		$this->method_description = __( 'Accept credit cards, PayPal, and international payments securely via Freemius.', 'wpfh-freemius-bridge' );
+		$this->method_title       = __( 'Freemius Secure Checkout', 'forgehub-freemius-bridge' );
+		$this->method_description = __( 'Accept credit cards, PayPal, and international payments securely via Freemius.', 'forgehub-freemius-bridge' );
 
-		$this->title       = __( '🔒 Credit Card / PayPal (via Freemius Secure Checkout)', 'wpfh-freemius-bridge' );
-		$this->description = __( 'Instant activation and automated license key delivery via Freemius 256-bit encrypted checkout.', 'wpfh-freemius-bridge' );
+		$this->title       = __( '🔒 Credit Card / PayPal (via Freemius Secure Checkout)', 'forgehub-freemius-bridge' );
+		$this->description = __( 'Instant activation and automated license key delivery via Freemius 256-bit encrypted checkout.', 'forgehub-freemius-bridge' );
 
 		$this->init_form_fields();
 		$this->init_settings();
@@ -70,9 +70,9 @@ class WC_Gateway_Freemius extends WC_Payment_Gateway {
 	public function init_form_fields() {
 		$this->form_fields = array(
 			'enabled' => array(
-				'title'   => __( 'Enable/Disable', 'wpfh-freemius-bridge' ),
+				'title'   => __( 'Enable/Disable', 'forgehub-freemius-bridge' ),
 				'type'    => 'checkbox',
-				'label'   => __( 'Enable Freemius Payment Gateway', 'wpfh-freemius-bridge' ),
+				'label'   => __( 'Enable Freemius Payment Gateway', 'forgehub-freemius-bridge' ),
 				'default' => 'yes',
 			),
 		);
@@ -82,7 +82,7 @@ class WC_Gateway_Freemius extends WC_Payment_Gateway {
 		$order = wc_get_order( $order_id );
 
 		// Mark order as pending payment
-		$order->update_status( 'pending', __( 'Awaiting Freemius checkout completion.', 'wpfh-freemius-bridge' ) );
+		$order->update_status( 'pending', __( 'Awaiting Freemius checkout completion.', 'forgehub-freemius-bridge' ) );
 
 		// Return receipt URL
 		return array(
@@ -140,15 +140,15 @@ class WC_Gateway_Freemius extends WC_Payment_Gateway {
 		?>
 		<div class="wpfh-freemius-pay-container" style="text-align:center;padding:48px 24px;background:#0f172a;border:1px solid #334155;border-radius:16px;color:#fff;margin:24px 0;box-shadow:0 10px 25px -5px rgba(0,0,0,0.4);">
 			<div class="wpfh-spinner" style="font-size:36px;margin-bottom:16px;">⚡</div>
-			<h2 style="color:#38bdf8;font-size:24px;font-weight:800;margin:0 0 12px;"><?php esc_html_e( 'Launching Secure Freemius Checkout...', 'wpfh-freemius-bridge' ); ?></h2>
+			<h2 style="color:#38bdf8;font-size:24px;font-weight:800;margin:0 0 12px;"><?php esc_html_e( 'Launching Secure Freemius Checkout...', 'forgehub-freemius-bridge' ); ?></h2>
 			<p style="color:#cbd5e1;font-size:15px;max-width:560px;margin:0 auto 24px;line-height:1.6;">
-				<?php esc_html_e( 'Your customer details have been pre-filled. Please complete your transaction in the encrypted window below.', 'wpfh-freemius-bridge' ); ?>
+				<?php esc_html_e( 'Your customer details have been pre-filled. Please complete your transaction in the encrypted window below.', 'forgehub-freemius-bridge' ); ?>
 			</p>
 			<button type="button" id="wpfh-launch-fs-modal" class="button" style="background:linear-gradient(135deg, #2563eb, #1d4ed8);color:#fff;font-weight:800;padding:14px 32px;border-radius:10px;border:0;cursor:pointer;font-size:16px;box-shadow:0 4px 14px 0 rgba(37,99,235,0.4);transition:all 0.2s;">
-				🔒 <?php esc_html_e( 'Open Secure Payment Window', 'wpfh-freemius-bridge' ); ?>
+				🔒 <?php esc_html_e( 'Open Secure Payment Window', 'forgehub-freemius-bridge' ); ?>
 			</button>
 			<div style="font-size:12px;color:#94a3b8;margin-top:16px;">
-				<?php esc_html_e( '✓ 14-Day Money-Back Guarantee • Instant License Delivery • 256-Bit SSL Encryption', 'wpfh-freemius-bridge' ); ?>
+				<?php esc_html_e( '✓ 14-Day Money-Back Guarantee • Instant License Delivery • 256-Bit SSL Encryption', 'forgehub-freemius-bridge' ); ?>
 			</div>
 		</div>
 

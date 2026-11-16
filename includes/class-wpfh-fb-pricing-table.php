@@ -194,8 +194,8 @@ class WPFH_FB_Pricing_Table {
 		<div class="wpfh-pricing-bridge" id="wpfh-pricing-bridge">
 			<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
 				<div>
-					<h3 style="margin:0;font-size:18px;color:#38bdf8;font-weight:800;letter-spacing:-0.02em;">⚡ <?php esc_html_e( 'Choose Your License & Edition', 'wpfh-freemius-bridge' ); ?></h3>
-					<p style="margin:4px 0 0;font-size:13px;color:#94a3b8;"><?php esc_html_e( 'Start free forever or unlock enterprise automation.', 'wpfh-freemius-bridge' ); ?></p>
+					<h3 style="margin:0;font-size:18px;color:#38bdf8;font-weight:800;letter-spacing:-0.02em;">⚡ <?php esc_html_e( 'Choose Your License & Edition', 'forgehub-freemius-bridge' ); ?></h3>
+					<p style="margin:4px 0 0;font-size:13px;color:#94a3b8;"><?php esc_html_e( 'Start free forever or unlock enterprise automation.', 'forgehub-freemius-bridge' ); ?></p>
 				</div>
 				<div class="wpfh-cycle-toggle" style="background:#1e293b;border:1px solid #334155;border-radius:20px;padding:3px;display:flex;gap:4px;">
 					<button type="button" class="wpfh-cycle-btn active" data-cycle="annual" style="background:#2563eb;color:#fff;border:0;padding:6px 14px;border-radius:16px;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;">
@@ -251,11 +251,11 @@ class WPFH_FB_Pricing_Table {
 					data-cycle="annual"
 					data-licenses="1"
 					style="width:100%;background:linear-gradient(135deg, #2563eb, #1d4ed8);color:#fff;font-weight:800;font-size:15px;padding:14px;border:0;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 14px 0 rgba(37, 99, 235, 0.4);transition:all 0.2s;">
-				<span class="wpfh-btn-text">🔒 <?php esc_html_e( 'Proceed to Pro Checkout ($19/yr)', 'wpfh-freemius-bridge' ); ?></span>
+				<span class="wpfh-btn-text">🔒 <?php esc_html_e( 'Proceed to Pro Checkout ($19/yr)', 'forgehub-freemius-bridge' ); ?></span>
 			</button>
 
 			<div id="wpfh-guarantee-text" style="text-align:center;font-size:12px;color:#94a3b8;margin-top:12px;">
-				<?php esc_html_e( '✓ 14-Day Money-Back Guarantee • Instant License Delivery • 256-Bit SSL Encryption', 'wpfh-freemius-bridge' ); ?>
+				<?php esc_html_e( '✓ 14-Day Money-Back Guarantee • Instant License Delivery • 256-Bit SSL Encryption', 'forgehub-freemius-bridge' ); ?>
 			</div>
 		</div>
 		<?php
@@ -277,36 +277,36 @@ class WPFH_FB_Pricing_Table {
 		?>
 		<div class="wpfh-pricing-bridge" data-plugin-id="<?php echo esc_attr( $atts['plugin_id'] ); ?>" data-public-key="<?php echo esc_attr( $atts['public_key'] ); ?>" data-plan-id="<?php echo esc_attr( $atts['plan_id'] ); ?>">
 			<div class="wpfh-pricing-toggle-wrap">
-				<button type="button" class="wpfh-cycle-btn active" data-cycle="annual"><?php esc_html_e( 'Annual Billing', 'wpfh-freemius-bridge' ); ?></button>
-				<button type="button" class="wpfh-cycle-btn" data-cycle="lifetime"><?php esc_html_e( 'Lifetime Access', 'wpfh-freemius-bridge' ); ?> <span class="wpfh-save-tag"><?php esc_html_e( 'Best Value', 'wpfh-freemius-bridge' ); ?></span></button>
+				<button type="button" class="wpfh-cycle-btn active" data-cycle="annual"><?php esc_html_e( 'Annual Billing', 'forgehub-freemius-bridge' ); ?></button>
+				<button type="button" class="wpfh-cycle-btn" data-cycle="lifetime"><?php esc_html_e( 'Lifetime Access', 'forgehub-freemius-bridge' ); ?> <span class="wpfh-save-tag"><?php esc_html_e( 'Best Value', 'forgehub-freemius-bridge' ); ?></span></button>
 			</div>
 
 			<div class="wpfh-tier-grid">
 				<div class="wpfh-tier-card" data-tier="1" data-annual="39" data-lifetime="99" data-annual-pricing="119784" data-lifetime-pricing="119787">
 					<div class="wpfh-tier-header">
-						<h4><?php esc_html_e( 'Single Site', 'wpfh-freemius-bridge' ); ?></h4>
-						<p class="wpfh-tier-desc"><?php esc_html_e( 'For solo creators & single projects', 'wpfh-freemius-bridge' ); ?></p>
+						<h4><?php esc_html_e( 'Single Site', 'forgehub-freemius-bridge' ); ?></h4>
+						<p class="wpfh-tier-desc"><?php esc_html_e( 'For solo creators & single projects', 'forgehub-freemius-bridge' ); ?></p>
 					</div>
 					<div class="wpfh-tier-price">
 						<span class="wpfh-currency">$</span>
 						<span class="wpfh-amount">39</span>
 						<span class="wpfh-period">/ year</span>
 					</div>
-					<button type="button" class="wpfh-buy-btn" data-licenses="1"><?php esc_html_e( 'Get Started', 'wpfh-freemius-bridge' ); ?></button>
+					<button type="button" class="wpfh-buy-btn" data-licenses="1"><?php esc_html_e( 'Get Started', 'forgehub-freemius-bridge' ); ?></button>
 				</div>
 
 				<div class="wpfh-tier-card featured" data-tier="5" data-annual="79" data-lifetime="199" data-annual-pricing="119785" data-lifetime-pricing="119788">
-					<div class="wpfh-popular-badge"><?php esc_html_e( 'MOST POPULAR', 'wpfh-freemius-bridge' ); ?></div>
+					<div class="wpfh-popular-badge"><?php esc_html_e( 'MOST POPULAR', 'forgehub-freemius-bridge' ); ?></div>
 					<div class="wpfh-tier-header">
-						<h4><?php esc_html_e( '5 Sites', 'wpfh-freemius-bridge' ); ?></h4>
-						<p class="wpfh-tier-desc"><?php esc_html_e( 'For growing businesses & portfolios', 'wpfh-freemius-bridge' ); ?></p>
+						<h4><?php esc_html_e( '5 Sites', 'forgehub-freemius-bridge' ); ?></h4>
+						<p class="wpfh-tier-desc"><?php esc_html_e( 'For growing businesses & portfolios', 'forgehub-freemius-bridge' ); ?></p>
 					</div>
 					<div class="wpfh-tier-price">
 						<span class="wpfh-currency">$</span>
 						<span class="wpfh-amount">79</span>
 						<span class="wpfh-period">/ year</span>
 					</div>
-					<button type="button" class="wpfh-buy-btn featured" data-licenses="5"><?php esc_html_e( 'Upgrade to 5 Sites', 'wpfh-freemius-bridge' ); ?></button>
+					<button type="button" class="wpfh-buy-btn featured" data-licenses="5"><?php esc_html_e( 'Upgrade to 5 Sites', 'forgehub-freemius-bridge' ); ?></button>
 				</div>
 			</div>
 		</div>

@@ -1,26 +1,27 @@
 <?php
 /**
- * Plugin Name:       WPFH Freemius Bridge for WooCommerce
- * Plugin URI:        https://wpforgehub.com/plugins/wpfh-freemius-bridge/
+ * Plugin Name:       Freemius Bridge
+ * Plugin URI:        https://wpforgehub.com/plugins/freemius-bridge/
  * Description:       Synchronize Freemius payments, subscriptions, and licenses seamlessly with WooCommerce and Customer Portal.
- * Version:           1.1.1
- * Author:            WPForgeHub
- * Author URI:        https://wpforgehub.com
- * License:           GPL-2.0+
- * License URI:       https://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain:       wpfh-freemius-bridge
- * Domain Path:       /languages
+ * Version:           1.1.2
  * Requires at least: 6.0
+ * Tested up to:      7.1
  * Requires PHP:      7.4
  * WC requires at least: 7.0
  * WC tested up to:   9.4
+ * Author:            WPForgeHub
+ * Author URI:        https://wpforgehub.com
+ * License:           GPLv2 or later
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain:       forgehub-freemius-bridge
+ * Domain Path:       /languages
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WPFH_FB_VERSION', '1.1.1' );
+define( 'WPFH_FB_VERSION', '1.1.2' );
 define( 'WPFH_FB_FILE', __FILE__ );
 define( 'WPFH_FB_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WPFH_FB_URL', plugin_dir_url( __FILE__ ) );
@@ -47,7 +48,7 @@ if ( ! function_exists( 'wpfh_fb_fs' ) ) {
 					'has_addons'     => false,
 					'has_paid_plans' => true,
 					'menu'           => array(
-						'slug'       => 'wpfh-freemius-bridge',
+						'slug'       => 'forgehub-freemius-bridge',
 						'first-path' => 'admin.php?page=wc-settings&tab=wpfh_fb',
 						'parent'     => array(
 							'slug' => 'woocommerce',
@@ -107,7 +108,7 @@ final class WPFH_Freemius_Bridge {
 	}
 
 	public function init() {
-		load_plugin_textdomain( 'wpfh-freemius-bridge', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+		// Note: load_plugin_textdomain is intentionally omitted as WordPress.org automatically loads translations since WP 4.6.
 
 		$this->includes();
 	}

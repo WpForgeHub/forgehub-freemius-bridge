@@ -1,11 +1,10 @@
 <?php
 /**
- * Plugin Name:       Freemius Bridge
+ * Plugin Name:       ForgeHub Freemius Bridge
  * Plugin URI:        https://wpforgehub.com/plugins/freemius-bridge/
  * Description:       Synchronize Freemius payments, subscriptions, and licenses seamlessly with WooCommerce and Customer Portal.
- * Version:           1.1.2
+ * Version:           1.1.3
  * Requires at least: 6.0
- * Tested up to:      7.1
  * Requires PHP:      7.4
  * WC requires at least: 7.0
  * WC tested up to:   9.4
@@ -21,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WPFH_FB_VERSION', '1.1.2' );
+define( 'WPFH_FB_VERSION', '1.1.3' );
 define( 'WPFH_FB_FILE', __FILE__ );
 define( 'WPFH_FB_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WPFH_FB_URL', plugin_dir_url( __FILE__ ) );
@@ -59,10 +58,12 @@ if ( ! function_exists( 'wpfh_fb_fs' ) ) {
 				// Fallback object for Free / Filter-based Pro distribution
 				$wpfh_fb_fs = new class {
 					public function can_use_premium_code() {
+						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 						return (bool) apply_filters( 'fs_can_use_premium_code__wpfh-freemius-bridge', false );
 					}
 					public function is__premium_only() { return false; }
 					public function is_plan( $plan ) {
+						// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 						return (bool) apply_filters( 'fs_is_plan__wpfh-freemius-bridge', false, $plan );
 					}
 					public function get_upgrade_url() {
@@ -122,7 +123,7 @@ final class WPFH_Freemius_Bridge {
 
 		// Register WooCommerce payment gateway
 		add_filter( 'woocommerce_payment_gateways', function( $gateways ) {
-			$gateways[] = 'WC_Gateway_Freemius';
+			$gateways[] = 'WPFH_FB_Gateway_Freemius';
 			return $gateways;
 		} );
 

@@ -1,10 +1,10 @@
-=== Freemius Bridge ===
+=== ForgeHub Freemius Bridge ===
 Contributors: wpforgehub
 Tags: freemius, woocommerce, webhook, license manager, saas bridge
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.1.2
+Stable tag: 1.1.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,6 +42,10 @@ Selling WordPress plugins via Freemius Merchant of Record (MoR) gives you global
 
 == Changelog ==
 
+
+= 1.1.3 =
+* Rename: plugin is now "ForgeHub Freemius Bridge" (ForgeHub naming standard).
+* Fix: Plugins screen now shows a consistent "Settings" link.
 = 1.1.0 =
 * Feature (Pro): Automated Webhook Replay Queue with exponential backoff and dead-letter admin controls.
 * Feature (Pro): Real-time Multi-Currency rate converter (USD, EUR, GBP, CAD, AUD).

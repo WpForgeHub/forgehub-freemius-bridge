@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class WC_Gateway_Freemius extends WC_Payment_Gateway {
+class WPFH_FB_Gateway_Freemius extends WC_Payment_Gateway {
 
 	public function __construct() {
 		$this->id                 = 'wpfh_freemius';
@@ -192,5 +192,5 @@ class WC_Gateway_Freemius extends WC_Payment_Gateway {
 }
 
 // Tier pick hooks must exist before the gateway is instantiated (gateways load lazily at checkout).
-add_action( 'wp_loaded', array( 'WC_Gateway_Freemius', 'remember_pricing_pick' ), 30 );
-add_action( 'woocommerce_checkout_create_order', array( 'WC_Gateway_Freemius', 'save_pricing_pick' ), 10, 1 );
+add_action( 'wp_loaded', array( 'WPFH_FB_Gateway_Freemius', 'remember_pricing_pick' ), 30 );
+add_action( 'woocommerce_checkout_create_order', array( 'WPFH_FB_Gateway_Freemius', 'save_pricing_pick' ), 10, 1 );

@@ -104,7 +104,7 @@ class WPFH_FB_Pricing_Table {
 	public function render_single_product_pricing() {
 		global $product;
 		if ( ! $product || ! is_object( $product ) ) {
-			$product = wc_get_product( get_the_ID() );
+			$product = wc_get_product( get_the_ID() ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- intentionally restores WooCommerce's global product.
 		}
 		if ( ! $product ) {
 			return;

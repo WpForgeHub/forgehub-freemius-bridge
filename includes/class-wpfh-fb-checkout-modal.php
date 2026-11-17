@@ -30,7 +30,7 @@ class WPFH_FB_Checkout_Modal {
 			'freemius-checkout-sdk',
 			'https://checkout.freemius.com/checkout.js',
 			array(),
-			null,
+			WPFH_FB_VERSION,
 			true
 		);
 

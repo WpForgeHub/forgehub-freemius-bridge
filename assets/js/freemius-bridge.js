@@ -179,6 +179,9 @@
 				if (checkoutLogo) {
 					fsConfig.image = checkoutLogo;
 				}
+				if (cfg.modal_params && typeof cfg.modal_params === 'object') {
+					$.extend(fsConfig, cfg.modal_params);
+				}
 				var handler = FS.Checkout.configure(fsConfig);
 				handler.open({
 					name: productName,
@@ -230,6 +233,9 @@
 				}
 				if (checkoutLogo) {
 					fsConfig.image = checkoutLogo;
+				}
+				if (cfg.modal_params && typeof cfg.modal_params === 'object') {
+					$.extend(fsConfig, cfg.modal_params);
 				}
 				var handler = FS.Checkout.configure(fsConfig);
 				handler.open({

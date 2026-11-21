@@ -61,6 +61,34 @@ class WPFH_FB_Webhook {
 			return new WP_REST_Response( array( 'error' => 'Invalid JSON' ), 400 );
 		}
 
+		$event_type = sanitize_text_field( isset( $payload['event'] ) ? $payload['event'] : ( isset( $payload['type'] ) ? $payload['type'] : 'payment.created' ) );
+		$result     = $this->process_payload( $payload );
+
+		if ( is_wp_error( $result ) ) {
+			$code = (int) $result->get_error_data();
+			if ( $code < 400 || $code > 599 ) {
+				$code = 500;
+			}
+			if ( $code >= 500 ) {
+				do_action( 'wpfh_fb_webhook_failed', $event_type, $raw_body, $signature, $result->get_error_message() );
+			}
+			return new WP_REST_Response( array( 'error' => $result->get_error_message() ), $code );
+		}
+
+		return new WP_REST_Response( $result, 200 );
+	}
+
+	/**
+	 * Process a decoded Freemius webhook payload (used by live endpoint and Pro Replay Queue).
+	 *
+	 * @param array $payload Decoded JSON payload.
+	 * @return array|WP_Error
+	 */
+	public function process_payload( $payload ) {
+		if ( empty( $payload ) || ! is_array( $payload ) ) {
+			return new WP_Error( 'wpfh_fb_invalid_payload', 'Invalid payload', 400 );
+		}
+
 		$event_type  = sanitize_text_field( isset( $payload['event'] ) ? $payload['event'] : ( isset( $payload['type'] ) ? $payload['type'] : 'payment.created' ) );
 		$data        = isset( $payload['data'] ) && is_array( $payload['data'] ) ? $payload['data'] : $payload;
 		$event_id    = sanitize_text_field(
@@ -76,19 +104,16 @@ class WPFH_FB_Webhook {
 		$amount      = floatval( isset( $data['payment']['gross'] ) ? $data['payment']['gross'] : ( isset( $data['gross'] ) ? $data['gross'] : 0.0 ) );
 
 		if ( empty( $email ) ) {
-			return new WP_REST_Response( array( 'error' => 'Missing email' ), 400 );
+			return new WP_Error( 'wpfh_fb_missing_email', 'Missing email', 400 );
 		}
 
 		// Idempotency guard for duplicate webhook deliveries.
 		$idempotency_key = '' !== $event_id ? 'wpfh_fb_evt_' . md5( $event_type . ':' . $event_id ) : '';
 		if ( '' !== $idempotency_key && false !== get_transient( $idempotency_key ) ) {
-			return new WP_REST_Response(
-				array(
-					'success'   => true,
-					'duplicate' => true,
-					'message'   => 'Webhook event already processed.',
-				),
-				200
+			return array(
+				'success'   => true,
+				'duplicate' => true,
+				'message'   => 'Webhook event already processed.',
 			);
 		}
 
@@ -100,16 +125,17 @@ class WPFH_FB_Webhook {
 				$username .= '_' . wp_rand( 100, 999 );
 			}
 			$user_id = wp_create_user( $username, wp_generate_password( 16, true ), $email );
-			if ( ! is_wp_error( $user_id ) ) {
-				wp_update_user(
-					array(
-						'ID'         => $user_id,
-						'first_name' => $first_name,
-						'last_name'  => $last_name,
-						'role'       => 'customer',
-					)
-				);
+			if ( is_wp_error( $user_id ) ) {
+				return new WP_Error( 'wpfh_fb_user_create_failed', $user_id->get_error_message(), 500 );
 			}
+			wp_update_user(
+				array(
+					'ID'         => $user_id,
+					'first_name' => $first_name,
+					'last_name'  => $last_name,
+					'role'       => 'customer',
+				)
+			);
 		} else {
 			$user_id = $user->ID;
 		}
@@ -153,21 +179,23 @@ class WPFH_FB_Webhook {
 				)
 			);
 
-			if ( ! is_wp_error( $order ) ) {
-				$order->set_billing_first_name( $first_name );
-				$order->set_billing_last_name( $last_name );
-				$order->set_billing_email( $email );
-				$order->set_payment_method( 'freemius' );
-				$order->set_payment_method_title( 'Freemius MoR' );
-				$order->set_total( $amount );
-				$order->update_meta_data( '_freemius_plugin_id', $plugin_id );
-				$order->update_meta_data( '_freemius_license_key', $license_key );
-				$order->update_meta_data( '_freemius_event_type', $event_type );
-				if ( '' !== $event_id ) {
-					$order->update_meta_data( '_freemius_event_id', $event_id );
-				}
-				$order->save();
+			if ( is_wp_error( $order ) ) {
+				return new WP_Error( 'wpfh_fb_order_create_failed', $order->get_error_message(), 500 );
 			}
+
+			$order->set_billing_first_name( $first_name );
+			$order->set_billing_last_name( $last_name );
+			$order->set_billing_email( $email );
+			$order->set_payment_method( 'freemius' );
+			$order->set_payment_method_title( 'Freemius MoR' );
+			$order->set_total( $amount );
+			$order->update_meta_data( '_freemius_plugin_id', $plugin_id );
+			$order->update_meta_data( '_freemius_license_key', $license_key );
+			$order->update_meta_data( '_freemius_event_type', $event_type );
+			if ( '' !== $event_id ) {
+				$order->update_meta_data( '_freemius_event_id', $event_id );
+			}
+			$order->save();
 		}
 
 		if ( '' !== $idempotency_key ) {
@@ -176,13 +204,10 @@ class WPFH_FB_Webhook {
 
 		do_action( 'wpfh_fb_webhook_processed', $event_type, $data, $user_id );
 
-		return new WP_REST_Response(
-			array(
-				'success' => true,
-				'message' => 'Freemius webhook processed successfully',
-				'user_id' => $user_id,
-			),
-			200
+		return array(
+			'success' => true,
+			'message' => 'Freemius webhook processed successfully',
+			'user_id' => $user_id,
 		);
 	}
 }

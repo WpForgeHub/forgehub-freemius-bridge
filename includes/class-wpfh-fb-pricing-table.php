@@ -285,7 +285,19 @@ class WPFH_FB_Pricing_Table {
 			return;
 		}
 
-		$currency       = function_exists( 'get_woocommerce_currency_symbol' ) ? html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' ) : '$';
+		$base_currency    = function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : 'USD';
+		$display_currency = (string) apply_filters( 'wpfh_fb_pricing_currency', $base_currency );
+		if ( class_exists( 'WPFH_FB_Multi_Currency' ) && strtoupper( $display_currency ) !== strtoupper( $base_currency ) ) {
+			$currency = WPFH_FB_Multi_Currency::get_currency_symbol( $display_currency );
+		} else {
+			$currency = function_exists( 'get_woocommerce_currency_symbol' ) ? html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' ) : '$';
+		}
+		$convert = function ( $amount ) use ( $base_currency, $display_currency ) {
+			if ( strtoupper( $display_currency ) === strtoupper( $base_currency ) ) {
+				return (float) $amount;
+			}
+			return (float) apply_filters( 'wpfh_fb_convert_price', (float) $amount, $base_currency, $display_currency );
+		};
 		$default_cycle  = $parsed['has_annual'] ? 'annual' : 'lifetime';
 		$show_toggle    = ( $parsed['has_annual'] && $parsed['has_lifetime'] );
 		$card_count     = count( $tiers ) + ( $free ? 1 : 0 );
@@ -301,7 +313,7 @@ class WPFH_FB_Pricing_Table {
 			$slot           = ! empty( $initial_pro[ $default_cycle ] ) ? $initial_pro[ $default_cycle ] : ( ! empty( $initial_pro['annual'] ) ? $initial_pro['annual'] : $initial_pro['lifetime'] );
 			$initial_var_id = $slot ? $slot['variation_id'] : $product->get_id();
 			$initial_pid    = $slot ? $slot['pricing_id'] : '';
-			$initial_price  = $slot ? self::format_amount( $slot['price'] ) : '0';
+			$initial_price  = $slot ? self::format_amount( $convert( $slot['price'] ) ) : '0';
 			$initial_lic    = $initial_pro['licenses'];
 		} elseif ( $free ) {
 			$initial_var_id = $free['variation_id'];
@@ -357,6 +369,8 @@ class WPFH_FB_Pricing_Table {
 					<h3 style="margin:0;font-size:18px;color:#38bdf8;font-weight:800;letter-spacing:-0.02em;"><?php esc_html_e( 'Choose Your License & Edition', 'forgehub-freemius-bridge' ); ?></h3>
 					<p style="margin:4px 0 0;font-size:13px;color:#94a3b8;"><?php esc_html_e( 'Select your plan below to continue.', 'forgehub-freemius-bridge' ); ?></p>
 				</div>
+				<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+				<?php do_action( 'wpfh_fb_pricing_header_controls', $display_currency ); ?>
 				<?php if ( $show_toggle ) : ?>
 				<div class="wpfh-cycle-toggle" style="background:#1e293b;border:1px solid #334155;border-radius:20px;padding:3px;display:flex;gap:4px;">
 					<button type="button" class="wpfh-cycle-btn active" data-cycle="annual" style="background:#2563eb;color:#fff;border:0;padding:6px 14px;border-radius:16px;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;">
@@ -367,6 +381,7 @@ class WPFH_FB_Pricing_Table {
 					</button>
 				</div>
 				<?php endif; ?>
+				</div>
 			</div>
 
 			<div class="wpfh-plan-grid" style="display:grid;grid-template-columns:repeat(<?php echo esc_attr( (string) $grid_cols ); ?>, 1fr);gap:10px;margin-bottom:20px;">
@@ -385,13 +400,13 @@ class WPFH_FB_Pricing_Table {
 					$ann        = $tier['annual'];
 					$lft        = $tier['lifetime'];
 					$active     = ( 'lifetime' === $default_cycle && $lft ) ? $lft : ( $ann ? $ann : $lft );
-					$ann_price  = $ann ? self::format_amount( $ann['price'] ) : '';
-					$lft_price  = $lft ? self::format_amount( $lft['price'] ) : '';
+					$ann_price  = $ann ? self::format_amount( $convert( $ann['price'] ) ) : '';
+					$lft_price  = $lft ? self::format_amount( $convert( $lft['price'] ) ) : '';
 					$ann_var_id = $ann ? (string) $ann['variation_id'] : '';
 					$lft_var_id = $lft ? (string) $lft['variation_id'] : '';
 					$ann_pid    = $ann ? (string) $ann['pricing_id'] : '';
 					$lft_pid    = $lft ? (string) $lft['pricing_id'] : '';
-					$disp_price = $active ? self::format_amount( $active['price'] ) : '0';
+					$disp_price = $active ? self::format_amount( $convert( $active['price'] ) ) : '0';
 					$disp_var   = $active ? (string) $active['variation_id'] : '';
 					$disp_pid   = $active ? (string) $active['pricing_id'] : '';
 					$is_first   = ( 0 === $idx && 'pro' === $initial_type );

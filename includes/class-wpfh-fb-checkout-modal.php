@@ -92,6 +92,11 @@ class WPFH_FB_Checkout_Modal {
 			? html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' )
 			: '$';
 
+		$modal_params = apply_filters( 'wpfh_fb_checkout_modal_params', array() );
+		if ( ! is_array( $modal_params ) ) {
+			$modal_params = array();
+		}
+
 		wp_localize_script(
 			'wpfh-fb-bridge',
 			'wpfh_fb_config',
@@ -108,6 +113,7 @@ class WPFH_FB_Checkout_Modal {
 				'user_lastname'   => $last_name,
 				'user_country'    => $country,
 				'is_user_logged'  => is_user_logged_in(),
+				'modal_params'    => $modal_params,
 			)
 		);
 	}

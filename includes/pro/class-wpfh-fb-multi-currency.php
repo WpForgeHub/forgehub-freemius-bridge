@@ -26,6 +26,7 @@ class WPFH_FB_Multi_Currency {
     private function __construct() {
         add_filter( 'wpfh_fb_pricing_currency', array( $this, 'filter_currency' ) );
         add_filter( 'wpfh_fb_convert_price', array( $this, 'convert_price' ), 10, 3 );
+        add_action( 'wpfh_fb_pricing_header_controls', array( $this, 'render_currency_switcher' ), 10, 1 );
     }
 
     public static function get_exchange_rates() {
@@ -44,25 +45,80 @@ class WPFH_FB_Multi_Currency {
         return $rates;
     }
 
+    public static function get_currency_symbol( $code ) {
+        $map = array(
+            'USD' => '$',
+            'EUR' => '€',
+            'GBP' => '£',
+            'CAD' => 'CA$',
+            'AUD' => 'A$',
+        );
+        return $map[ strtoupper( (string) $code ) ] ?? '$';
+    }
+
     public function filter_currency( $default_currency ) {
+        $rates = self::get_exchange_rates();
+
+        // 1. Explicit ?currency= query parameter.
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- public currency switcher query parameter.
         if ( isset( $_GET['currency'] ) ) {
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-            $curr  = strtoupper( sanitize_key( wp_unslash( $_GET['currency'] ) ) );
-            $rates = self::get_exchange_rates();
+            $curr = strtoupper( sanitize_key( wp_unslash( $_GET['currency'] ) ) );
+            if ( isset( $rates[ $curr ] ) ) {
+                if ( ! headers_sent() ) {
+                    setcookie( 'wpfh_fb_currency', $curr, time() + ( 30 * DAY_IN_SECONDS ), COOKIEPATH ? COOKIEPATH : '/', COOKIE_DOMAIN ? COOKIE_DOMAIN : '' );
+                }
+                return $curr;
+            }
+        }
+
+        // 2. Saved visitor cookie.
+        if ( isset( $_COOKIE['wpfh_fb_currency'] ) ) {
+            $curr = strtoupper( sanitize_key( wp_unslash( $_COOKIE['wpfh_fb_currency'] ) ) );
             if ( isset( $rates[ $curr ] ) ) {
                 return $curr;
             }
         }
+
+        // 3. Cloudflare / server country header geolocation fallback.
+        if ( ! empty( $_SERVER['HTTP_CF_IPCOUNTRY'] ) ) {
+            $country = strtoupper( sanitize_text_field( wp_unslash( $_SERVER['HTTP_CF_IPCOUNTRY'] ) ) );
+            $geo_map = array(
+                'GB' => 'GBP',
+                'UK' => 'GBP',
+                'CA' => 'CAD',
+                'AU' => 'AUD',
+                'DE' => 'EUR', 'FR' => 'EUR', 'ES' => 'EUR', 'IT' => 'EUR', 'NL' => 'EUR',
+                'BE' => 'EUR', 'AT' => 'EUR', 'IE' => 'EUR', 'PT' => 'EUR', 'FI' => 'EUR',
+            );
+            if ( isset( $geo_map[ $country ] ) && isset( $rates[ $geo_map[ $country ] ] ) ) {
+                return $geo_map[ $country ];
+            }
+        }
+
         return $default_currency;
     }
 
     public function convert_price( $amount, $from = 'USD', $to = 'EUR' ) {
+        if ( strtoupper( (string) $from ) === strtoupper( (string) $to ) ) {
+            return (float) $amount;
+        }
         $rates = self::get_exchange_rates();
-        $from_rate = $rates[ $from ] ?? 1.0;
-        $to_rate   = $rates[ $to ] ?? 1.0;
+        $from_rate = $rates[ strtoupper( (string) $from ) ] ?? 1.0;
+        $to_rate   = $rates[ strtoupper( (string) $to ) ] ?? 1.0;
 
-        $usd_amount = $amount / max( 0.0001, $from_rate );
+        $usd_amount = (float) $amount / max( 0.0001, $from_rate );
         return round( $usd_amount * $to_rate, 2 );
+    }
+
+    public function render_currency_switcher( $active_currency ) {
+        $rates = self::get_exchange_rates();
+        ?>
+        <select class="wpfh-fb-currency-select" aria-label="<?php esc_attr_e( 'Select currency', 'forgehub-freemius-bridge' ); ?>" onchange="if(this.value){var u=new URL(window.location.href);u.searchParams.set('currency',this.value);window.location.href=u.toString();}" style="background:#1e293b;color:#f8fafc;border:1px solid #334155;border-radius:16px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;">
+            <?php foreach ( array_keys( $rates ) as $code ) : ?>
+                <option value="<?php echo esc_attr( $code ); ?>" <?php selected( strtoupper( (string) $active_currency ), $code ); ?>><?php echo esc_html( $code ); ?></option>
+            <?php endforeach; ?>
+        </select>
+        <?php
     }
 }

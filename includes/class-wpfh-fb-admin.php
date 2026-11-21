@@ -68,8 +68,13 @@ class WPFH_FB_Admin {
 	public function add_action_links( $links ) {
 		$settings_url  = class_exists( 'WooCommerce' ) ? admin_url( 'admin.php?page=wc-settings&tab=wpfh_fb' ) : admin_url( 'options-general.php?page=forgehub-freemius-bridge' );
 		$settings_link = '<a href="' . esc_url( $settings_url ) . '">' . esc_html__( 'Settings', 'forgehub-freemius-bridge' ) . '</a>';
-		$pro_link      = '<a href="https://wpforgehub.com/product/freemius-bridge/" style="color:#10b981;font-weight:700;" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Upgrade to Pro', 'forgehub-freemius-bridge' ) . '</a>';
-		array_unshift( $links, $settings_link, $pro_link );
+		$is_pro        = function_exists( 'wpfh_fb_fs' ) && wpfh_fb_fs()->can_use_premium_code();
+		if ( $is_pro ) {
+			array_unshift( $links, $settings_link );
+		} else {
+			$pro_link = '<a href="https://wpforgehub.com/product/freemius-bridge/" style="color:#10b981;font-weight:700;" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Upgrade to Pro', 'forgehub-freemius-bridge' ) . '</a>';
+			array_unshift( $links, $settings_link, $pro_link );
+		}
 		return $links;
 	}
 
@@ -140,6 +145,7 @@ class WPFH_FB_Admin {
 
 	public function render_settings() {
 		woocommerce_admin_fields( $this->get_settings() );
+		do_action( 'wpfh_fb_after_settings' );
 		$this->render_pro_upsell();
 	}
 
@@ -353,9 +359,18 @@ class WPFH_FB_Admin {
 						<th scope="row"><label for="wpfh_fb_default_public_key"><?php esc_html_e( 'Default Public Key', 'forgehub-freemius-bridge' ); ?></label></th>
 						<td><input name="wpfh_fb_default_public_key" id="wpfh_fb_default_public_key" type="text" value="<?php echo esc_attr( get_option( 'wpfh_fb_default_public_key', '' ) ); ?>" class="regular-text" /></td>
 					</tr>
+					<tr>
+						<th scope="row"><label for="wpfh_fb_checkout_logo"><?php esc_html_e( 'Checkout Modal Logo URL', 'forgehub-freemius-bridge' ); ?></label></th>
+						<td><input name="wpfh_fb_checkout_logo" id="wpfh_fb_checkout_logo" type="url" value="<?php echo esc_attr( get_option( 'wpfh_fb_checkout_logo', '' ) ); ?>" class="regular-text" /></td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="wpfh_fb_checkout_name"><?php esc_html_e( 'Default Checkout Title', 'forgehub-freemius-bridge' ); ?></label></th>
+						<td><input name="wpfh_fb_checkout_name" id="wpfh_fb_checkout_name" type="text" value="<?php echo esc_attr( get_option( 'wpfh_fb_checkout_name', '' ) ); ?>" class="regular-text" /></td>
+					</tr>
 				</table>
 				<?php submit_button(); ?>
 			</form>
+			<?php do_action( 'wpfh_fb_after_settings' ); ?>
 			<?php $this->render_pro_upsell(); ?>
 		</div>
 		<?php

@@ -44,12 +44,16 @@ class WPFH_FB_Webhook {
 			$signature = $request->get_header( 'fs-signature' );
 		}
 
-		// Verify signature if secret key configured.
-		if ( ! empty( $secret_key ) && ! empty( $signature ) ) {
-			$expected_sig = hash_hmac( 'sha256', $raw_body, $secret_key );
-			if ( ! hash_equals( $expected_sig, $signature ) ) {
-				return new WP_REST_Response( array( 'error' => 'Invalid signature' ), 401 );
-			}
+		// Fail-closed HMAC signature verification.
+		if ( '' === $secret_key ) {
+			return new WP_REST_Response( array( 'error' => 'Webhook secret key is not configured.' ), 401 );
+		}
+		if ( empty( $signature ) || ! is_string( $signature ) ) {
+			return new WP_REST_Response( array( 'error' => 'Missing webhook signature.' ), 401 );
+		}
+		$expected_sig = hash_hmac( 'sha256', $raw_body, $secret_key );
+		if ( ! hash_equals( $expected_sig, $signature ) ) {
+			return new WP_REST_Response( array( 'error' => 'Invalid signature.' ), 401 );
 		}
 
 		$payload = json_decode( $raw_body, true );
@@ -57,9 +61,12 @@ class WPFH_FB_Webhook {
 			return new WP_REST_Response( array( 'error' => 'Invalid JSON' ), 400 );
 		}
 
-		$event_type  = isset( $payload['event'] ) ? $payload['event'] : ( isset( $payload['type'] ) ? $payload['type'] : 'payment.created' );
-		$data        = isset( $payload['data'] ) ? $payload['data'] : $payload;
-		$user_data   = isset( $data['user'] ) ? $data['user'] : array();
+		$event_type  = sanitize_text_field( isset( $payload['event'] ) ? $payload['event'] : ( isset( $payload['type'] ) ? $payload['type'] : 'payment.created' ) );
+		$data        = isset( $payload['data'] ) && is_array( $payload['data'] ) ? $payload['data'] : $payload;
+		$event_id    = sanitize_text_field(
+			(string) ( isset( $payload['id'] ) ? $payload['id'] : ( isset( $data['payment']['id'] ) ? $data['payment']['id'] : '' ) )
+		);
+		$user_data   = isset( $data['user'] ) && is_array( $data['user'] ) ? $data['user'] : array();
 		$email       = sanitize_email( isset( $user_data['email'] ) ? $user_data['email'] : ( isset( $data['email'] ) ? $data['email'] : '' ) );
 		$first_name  = sanitize_text_field( isset( $user_data['first_name'] ) ? $user_data['first_name'] : '' );
 		$last_name   = sanitize_text_field( isset( $user_data['last_name'] ) ? $user_data['last_name'] : '' );
@@ -70,6 +77,19 @@ class WPFH_FB_Webhook {
 
 		if ( empty( $email ) ) {
 			return new WP_REST_Response( array( 'error' => 'Missing email' ), 400 );
+		}
+
+		// Idempotency guard for duplicate webhook deliveries.
+		$idempotency_key = '' !== $event_id ? 'wpfh_fb_evt_' . md5( $event_type . ':' . $event_id ) : '';
+		if ( '' !== $idempotency_key && false !== get_transient( $idempotency_key ) ) {
+			return new WP_REST_Response(
+				array(
+					'success'   => true,
+					'duplicate' => true,
+					'message'   => 'Webhook event already processed.',
+				),
+				200
+			);
 		}
 
 		// 1. User lookup / creation.
@@ -94,7 +114,18 @@ class WPFH_FB_Webhook {
 			$user_id = $user->ID;
 		}
 
-		// 2. Attach license key to user profile.
+		$is_revoke_event = in_array(
+			$event_type,
+			array( 'payment.refunded', 'license.cancelled', 'license.expired', 'subscription.cancelled' ),
+			true
+		);
+		$is_purchase_event = in_array(
+			$event_type,
+			array( 'payment.created', 'license.created', 'subscription.created', 'subscription.renewal', 'install.installed' ),
+			true
+		);
+
+		// 2. Attach or update license key on user profile.
 		if ( $user_id && ! empty( $license_key ) ) {
 			$existing_licenses = get_user_meta( $user_id, 'wpfh_licenses', true );
 			if ( ! is_array( $existing_licenses ) ) {
@@ -105,6 +136,7 @@ class WPFH_FB_Webhook {
 			$existing_licenses[ $license_slot ] = array(
 				'key'        => $license_key,
 				'plan_id'    => $plan_id,
+				'status'     => $is_revoke_event ? 'revoked' : 'active',
 				'updated_at' => current_time( 'mysql' ),
 				'event'      => $event_type,
 			);
@@ -112,8 +144,8 @@ class WPFH_FB_Webhook {
 			update_user_meta( $user_id, 'wpfh_licenses', $existing_licenses );
 		}
 
-		// 3. Create or update shadow WooCommerce Order if WooCommerce is active.
-		if ( class_exists( 'WooCommerce' ) && $user_id ) {
+		// 3. Create shadow WooCommerce Order ONLY for purchase/payment events.
+		if ( class_exists( 'WooCommerce' ) && $user_id && $is_purchase_event ) {
 			$order = wc_create_order(
 				array(
 					'customer_id' => $user_id,
@@ -130,9 +162,19 @@ class WPFH_FB_Webhook {
 				$order->set_total( $amount );
 				$order->update_meta_data( '_freemius_plugin_id', $plugin_id );
 				$order->update_meta_data( '_freemius_license_key', $license_key );
+				$order->update_meta_data( '_freemius_event_type', $event_type );
+				if ( '' !== $event_id ) {
+					$order->update_meta_data( '_freemius_event_id', $event_id );
+				}
 				$order->save();
 			}
 		}
+
+		if ( '' !== $idempotency_key ) {
+			set_transient( $idempotency_key, 1, DAY_IN_SECONDS );
+		}
+
+		do_action( 'wpfh_fb_webhook_processed', $event_type, $data, $user_id );
 
 		return new WP_REST_Response(
 			array(

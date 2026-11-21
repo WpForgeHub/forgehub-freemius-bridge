@@ -25,6 +25,21 @@ class WPFH_FB_Checkout_Modal {
 	}
 
 	public function enqueue_scripts() {
+		$should_enqueue = false;
+		if ( function_exists( 'is_woocommerce' ) && ( is_woocommerce() || is_cart() || is_checkout() || is_account_page() ) ) {
+			$should_enqueue = true;
+		}
+		if ( ! $should_enqueue && is_singular() ) {
+			$post = get_post();
+			if ( $post && ( has_shortcode( $post->post_content, 'wpfh_freemius_pricing' ) || has_shortcode( $post->post_content, 'wpfh_freemius_checkout' ) || false !== strpos( $post->post_content, 'wpfh-fs-buy-btn' ) ) ) {
+				$should_enqueue = true;
+			}
+		}
+		$should_enqueue = (bool) apply_filters( 'wpfh_fb_should_enqueue_scripts', $should_enqueue );
+		if ( ! $should_enqueue ) {
+			return;
+		}
+
 		// Enqueue Freemius Checkout JS SDK.
 		wp_enqueue_script(
 			'freemius-checkout-sdk',

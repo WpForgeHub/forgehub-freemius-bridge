@@ -3,7 +3,7 @@
  * Plugin Name:       ForgeHub Freemius Bridge
  * Plugin URI:        https://wpforgehub.com/plugins/freemius-bridge/
  * Description:       Synchronize Freemius payments, subscriptions, and licenses seamlessly with WooCommerce and Customer Portal.
- * Version:           1.1.3
+ * Version:           1.2.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * WC requires at least: 7.0
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'WPFH_FB_VERSION', '1.1.3' );
+define( 'WPFH_FB_VERSION', '1.2.0' );
 define( 'WPFH_FB_FILE', __FILE__ );
 define( 'WPFH_FB_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WPFH_FB_URL', plugin_dir_url( __FILE__ ) );

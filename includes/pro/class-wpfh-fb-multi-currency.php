@@ -45,8 +45,10 @@ class WPFH_FB_Multi_Currency {
     }
 
     public function filter_currency( $default_currency ) {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- public currency switcher query parameter.
         if ( isset( $_GET['currency'] ) ) {
-            $curr = strtoupper( sanitize_key( $_GET['currency'] ) );
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+            $curr  = strtoupper( sanitize_key( wp_unslash( $_GET['currency'] ) ) );
             $rates = self::get_exchange_rates();
             if ( isset( $rates[ $curr ] ) ) {
                 return $curr;

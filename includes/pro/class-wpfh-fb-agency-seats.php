@@ -40,7 +40,7 @@ class WPFH_FB_Agency_Seats {
         check_ajax_referer( 'wpfh_fb_agency_nonce' );
 
         $order_id = absint( $_POST['order_id'] ?? 0 );
-        $client_email = sanitize_email( $_POST['client_email'] ?? '' );
+        $client_email = isset( $_POST['client_email'] ) ? sanitize_email( wp_unslash( $_POST['client_email'] ) ) : '';
         $order = wc_get_order( $order_id );
 
         if ( ! $order || ! is_email( $client_email ) ) {
@@ -75,7 +75,7 @@ class WPFH_FB_Agency_Seats {
         check_ajax_referer( 'wpfh_fb_agency_nonce' );
 
         $order_id = absint( $_POST['order_id'] ?? 0 );
-        $client_email = sanitize_email( $_POST['client_email'] ?? '' );
+        $client_email = isset( $_POST['client_email'] ) ? sanitize_email( wp_unslash( $_POST['client_email'] ) ) : '';
         $order = wc_get_order( $order_id );
 
         if ( ! $order ) {

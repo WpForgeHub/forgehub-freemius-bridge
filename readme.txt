@@ -4,7 +4,7 @@ Tags: freemius, woocommerce, webhook, license manager, saas bridge
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.1.3
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,6 +42,11 @@ Selling WordPress plugins via Freemius Merchant of Record (MoR) gives you global
 
 == Changelog ==
 
+
+= 1.2.0 =
+* Refactor: Removed all hardcoded store IDs, keys, catalog maps, and prices; 100% generic architecture.
+* Feature: Added WooCommerce Product Data "Freemius Bridge" tab and per-variation Freemius mapping fields (Edition, Billing Cycle, Licenses, Pricing ID, Label, Subtitle, Badge).
+* Enhancement: Hybrid pricing selector now reads all prices and billing cycles directly from WooCommerce product variations and binds exact variation IDs to checkout.
 
 = 1.1.3 =
 * Rename: plugin is now "ForgeHub Freemius Bridge" (ForgeHub naming standard).

@@ -30,7 +30,8 @@ class WPFH_FB_Affiliate_Bridge {
     }
 
     public function track_referral_cookie() {
-        $aff_id = sanitize_text_field( $_GET['ref'] ?? $_GET['aff'] ?? '' );
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- public referral query parameter.
+        $aff_id = isset( $_GET['ref'] ) ? sanitize_text_field( wp_unslash( $_GET['ref'] ) ) : ( isset( $_GET['aff'] ) ? sanitize_text_field( wp_unslash( $_GET['aff'] ) ) : '' );
         if ( ! empty( $aff_id ) && ! headers_sent() ) {
             setcookie( 'wpfh_affiliate_id', $aff_id, time() + ( 30 * DAY_IN_SECONDS ), COOKIEPATH ?: '/', COOKIE_DOMAIN ?: '' );
             $_COOKIE['wpfh_affiliate_id'] = $aff_id;
@@ -38,7 +39,7 @@ class WPFH_FB_Affiliate_Bridge {
     }
 
     public function get_active_affiliate_id() {
-        return sanitize_text_field( $_COOKIE['wpfh_affiliate_id'] ?? '' );
+        return isset( $_COOKIE['wpfh_affiliate_id'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['wpfh_affiliate_id'] ) ) : '';
     }
 
     public function inject_affiliate_modal_params( $params ) {

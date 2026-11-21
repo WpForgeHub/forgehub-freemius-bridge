@@ -24,6 +24,101 @@ class WPFH_FB_Pricing_Table {
 		add_shortcode( 'wpfh_freemius_pricing', array( $this, 'render_shortcode' ) );
 		add_action( 'wp', array( $this, 'remove_default_variations_form' ) );
 		add_action( 'woocommerce_single_product_summary', array( $this, 'render_single_product_pricing' ), 25 );
+		add_filter( 'wpfh_pl_card_price_bounds', array( $this, 'filter_listing_card_price_bounds' ), 10, 2 );
+		add_filter( 'wpfh_pl_card_price_html', array( $this, 'filter_listing_card_price_html' ), 10, 4 );
+	}
+
+	/**
+	 * Resolve Freemius tier pricing (annual + lifetime) for a WooCommerce product.
+	 *
+	 * @param WC_Product $product WooCommerce product.
+	 * @return array
+	 */
+	public static function get_product_pricing( $product ) {
+		if ( ! $product || ! is_object( $product ) ) {
+			return array();
+		}
+		$product_id   = $product->get_id();
+		$slug         = $product->get_slug();
+		$catalog      = self::get_catalog();
+		$cfg          = isset( $catalog[ $slug ] ) ? $catalog[ $slug ] : array();
+		$meta_pricing = get_post_meta( $product_id, '_wpfh_freemius_pricing', true );
+
+		if ( ! empty( $meta_pricing ) && is_array( $meta_pricing ) ) {
+			return $meta_pricing;
+		}
+		if ( ! empty( $cfg['pricing'] ) && is_array( $cfg['pricing'] ) ) {
+			return $cfg['pricing'];
+		}
+		return array(
+			'1_site'    => array( 'pricing_id' => '119784', 'annual' => 19, 'lifetime' => 39 ),
+			'5_sites'   => array( 'pricing_id' => '119785', 'annual' => 39, 'lifetime' => 79 ),
+			'unlimited' => array( 'pricing_id' => '119786', 'annual' => 69, 'lifetime' => 129 ),
+		);
+	}
+
+	/**
+	 * Expand Product Listings card price bounds with Freemius annual & lifetime tier prices.
+	 *
+	 * @param array      $bounds  Associative array with 'min' and 'max' floats.
+	 * @param WC_Product $product WooCommerce product.
+	 * @return array
+	 */
+	public function filter_listing_card_price_bounds( $bounds, $product ) {
+		if ( ! is_array( $bounds ) || ! $product || ! is_object( $product ) ) {
+			return $bounds;
+		}
+		$min          = isset( $bounds['min'] ) ? (float) $bounds['min'] : 0.0;
+		$max          = isset( $bounds['max'] ) ? (float) $bounds['max'] : 0.0;
+		$slug         = $product->get_slug();
+		$catalog      = self::get_catalog();
+		$meta_pricing = get_post_meta( $product->get_id(), '_wpfh_freemius_pricing', true );
+
+		if ( $max <= 0.0 && empty( $meta_pricing ) && ! isset( $catalog[ $slug ] ) ) {
+			return $bounds;
+		}
+
+		$pricing = self::get_product_pricing( $product );
+		foreach ( $pricing as $tier ) {
+			if ( ! is_array( $tier ) ) {
+				continue;
+			}
+			foreach ( array( 'annual', 'lifetime' ) as $cycle ) {
+				if ( isset( $tier[ $cycle ] ) && is_numeric( $tier[ $cycle ] ) ) {
+					$val = (float) $tier[ $cycle ];
+					if ( $val > $max ) {
+						$max = $val;
+					}
+				}
+			}
+		}
+
+		$bounds['min'] = $min;
+		$bounds['max'] = $max;
+		return $bounds;
+	}
+
+	/**
+	 * Reflect expanded Freemius tier/lifetime max price in Product Listings card price HTML.
+	 *
+	 * @param string     $price_html Default WooCommerce price HTML.
+	 * @param WC_Product $product    WooCommerce product.
+	 * @param float      $min_price  Effective minimum price.
+	 * @param float      $max_price  Effective maximum price.
+	 * @return string
+	 */
+	public function filter_listing_card_price_html( $price_html, $product, $min_price, $max_price ) {
+		if ( ! $product || ! is_object( $product ) || ! function_exists( 'wc_format_price_range' ) ) {
+			return $price_html;
+		}
+		$wc_max = $product->is_type( 'variable' )
+			? (float) $product->get_variation_price( 'max', true )
+			: (float) $product->get_price();
+
+		if ( (float) $max_price > $wc_max ) {
+			return wc_format_price_range( (float) $min_price, (float) $max_price );
+		}
+		return $price_html;
 	}
 
 	public function remove_default_variations_form() {

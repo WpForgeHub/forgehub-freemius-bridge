@@ -25,22 +25,26 @@ class WPFH_FB_Webhook {
 	}
 
 	public function register_routes() {
-		register_rest_route( 'wpfh/v1', '/freemius-webhook', array(
-			'methods'             => 'POST',
-			'callback'            => array( $this, 'handle_webhook' ),
-			'permission_callback' => '__return_true',
-		) );
+		register_rest_route(
+			'wpfh/v1',
+			'/freemius-webhook',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( $this, 'handle_webhook' ),
+				'permission_callback' => '__return_true',
+			)
+		);
 	}
 
 	public function handle_webhook( $request ) {
-		$secret_key = get_option( 'wpfh_fb_secret_key', 'sk_M9TizQ7:j9959KI])D7v6_Pi1C_pP' );
+		$secret_key = (string) get_option( 'wpfh_fb_secret_key', '' );
 		$raw_body   = $request->get_body();
 		$signature  = $request->get_header( 'x-freemius-signature' );
 		if ( empty( $signature ) ) {
 			$signature = $request->get_header( 'fs-signature' );
 		}
 
-		// Verify signature if secret key configured
+		// Verify signature if secret key configured.
 		if ( ! empty( $secret_key ) && ! empty( $signature ) ) {
 			$expected_sig = hash_hmac( 'sha256', $raw_body, $secret_key );
 			if ( ! hash_equals( $expected_sig, $signature ) ) {
@@ -53,23 +57,22 @@ class WPFH_FB_Webhook {
 			return new WP_REST_Response( array( 'error' => 'Invalid JSON' ), 400 );
 		}
 
-		$event_type = isset( $payload['event'] ) ? $payload['event'] : ( isset( $payload['type'] ) ? $payload['type'] : 'payment.created' );
-		$data       = isset( $payload['data'] ) ? $payload['data'] : $payload;
-
+		$event_type  = isset( $payload['event'] ) ? $payload['event'] : ( isset( $payload['type'] ) ? $payload['type'] : 'payment.created' );
+		$data        = isset( $payload['data'] ) ? $payload['data'] : $payload;
 		$user_data   = isset( $data['user'] ) ? $data['user'] : array();
 		$email       = sanitize_email( isset( $user_data['email'] ) ? $user_data['email'] : ( isset( $data['email'] ) ? $data['email'] : '' ) );
 		$first_name  = sanitize_text_field( isset( $user_data['first_name'] ) ? $user_data['first_name'] : '' );
 		$last_name   = sanitize_text_field( isset( $user_data['last_name'] ) ? $user_data['last_name'] : '' );
 		$license_key = sanitize_text_field( isset( $data['license']['secret_key'] ) ? $data['license']['secret_key'] : ( isset( $data['secret_key'] ) ? $data['secret_key'] : ( isset( $data['license_key'] ) ? $data['license_key'] : '' ) ) );
-		$plugin_id   = sanitize_text_field( isset( $data['plugin_id'] ) ? $data['plugin_id'] : '44985' );
-		$plan_id     = sanitize_text_field( isset( $data['plan_id'] ) ? $data['plan_id'] : '' );
+		$plugin_id   = sanitize_text_field( isset( $data['plugin_id'] ) ? $data['plugin_id'] : (string) get_option( 'wpfh_fb_default_plugin_id', '' ) );
+		$plan_id     = sanitize_text_field( isset( $data['plan_id'] ) ? $data['plan_id'] : (string) get_option( 'wpfh_fb_default_plan_id', '' ) );
 		$amount      = floatval( isset( $data['payment']['gross'] ) ? $data['payment']['gross'] : ( isset( $data['gross'] ) ? $data['gross'] : 0.0 ) );
 
 		if ( empty( $email ) ) {
 			return new WP_REST_Response( array( 'error' => 'Missing email' ), 400 );
 		}
 
-		// 1. User lookup / creation
+		// 1. User lookup / creation.
 		$user = get_user_by( 'email', $email );
 		if ( ! $user ) {
 			$username = sanitize_user( current( explode( '@', $email ) ) );
@@ -78,25 +81,28 @@ class WPFH_FB_Webhook {
 			}
 			$user_id = wp_create_user( $username, wp_generate_password( 16, true ), $email );
 			if ( ! is_wp_error( $user_id ) ) {
-				wp_update_user( array(
-					'ID'         => $user_id,
-					'first_name' => $first_name,
-					'last_name'  => $last_name,
-					'role'       => 'customer',
-				) );
+				wp_update_user(
+					array(
+						'ID'         => $user_id,
+						'first_name' => $first_name,
+						'last_name'  => $last_name,
+						'role'       => 'customer',
+					)
+				);
 			}
 		} else {
 			$user_id = $user->ID;
 		}
 
-		// 2. Attach license key to user profile
+		// 2. Attach license key to user profile.
 		if ( $user_id && ! empty( $license_key ) ) {
 			$existing_licenses = get_user_meta( $user_id, 'wpfh_licenses', true );
 			if ( ! is_array( $existing_licenses ) ) {
 				$existing_licenses = array();
 			}
 
-			$existing_licenses[ $plugin_id ] = array(
+			$license_slot                       = '' !== $plugin_id ? $plugin_id : 'default';
+			$existing_licenses[ $license_slot ] = array(
 				'key'        => $license_key,
 				'plan_id'    => $plan_id,
 				'updated_at' => current_time( 'mysql' ),
@@ -106,12 +112,14 @@ class WPFH_FB_Webhook {
 			update_user_meta( $user_id, 'wpfh_licenses', $existing_licenses );
 		}
 
-		// 3. Create or update shadow WooCommerce Order if WooCommerce is active
+		// 3. Create or update shadow WooCommerce Order if WooCommerce is active.
 		if ( class_exists( 'WooCommerce' ) && $user_id ) {
-			$order = wc_create_order( array(
-				'customer_id' => $user_id,
-				'status'      => 'completed',
-			) );
+			$order = wc_create_order(
+				array(
+					'customer_id' => $user_id,
+					'status'      => 'completed',
+				)
+			);
 
 			if ( ! is_wp_error( $order ) ) {
 				$order->set_billing_first_name( $first_name );
@@ -126,10 +134,13 @@ class WPFH_FB_Webhook {
 			}
 		}
 
-		return new WP_REST_Response( array(
-			'success' => true,
-			'message' => 'Freemius webhook processed successfully',
-			'user_id' => $user_id,
-		), 200 );
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'message' => 'Freemius webhook processed successfully',
+				'user_id' => $user_id,
+			),
+			200
+		);
 	}
 }

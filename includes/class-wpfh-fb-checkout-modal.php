@@ -25,7 +25,7 @@ class WPFH_FB_Checkout_Modal {
 	}
 
 	public function enqueue_scripts() {
-		// Enqueue Freemius Checkout JS SDK
+		// Enqueue Freemius Checkout JS SDK.
 		wp_enqueue_script(
 			'freemius-checkout-sdk',
 			'https://checkout.freemius.com/checkout.js',
@@ -34,29 +34,32 @@ class WPFH_FB_Checkout_Modal {
 			true
 		);
 
+		$css_path = WPFH_FB_PATH . 'assets/css/freemius-bridge.css';
+		$js_path  = WPFH_FB_PATH . 'assets/js/freemius-bridge.js';
+
 		wp_enqueue_style(
 			'wpfh-fb-bridge',
 			WPFH_FB_URL . 'assets/css/freemius-bridge.css',
 			array(),
-			WPFH_FB_VERSION
+			file_exists( $css_path ) ? (string) filemtime( $css_path ) : WPFH_FB_VERSION
 		);
 
 		wp_enqueue_script(
 			'wpfh-fb-bridge',
 			WPFH_FB_URL . 'assets/js/freemius-bridge.js',
 			array( 'jquery', 'freemius-checkout-sdk' ),
-			WPFH_FB_VERSION,
+			file_exists( $js_path ) ? (string) filemtime( $js_path ) : WPFH_FB_VERSION,
 			true
 		);
 
-		// Pass current user info if logged in
+		// Pass current user info if logged in.
 		$user_email = '';
 		$user_name  = '';
 		$first_name = '';
 		$last_name  = '';
 		$country    = '';
 		if ( is_user_logged_in() ) {
-			$user = wp_get_current_user();
+			$user       = wp_get_current_user();
 			$user_email = $user->user_email;
 			$user_name  = $user->display_name;
 			$first_name = $user->first_name;
@@ -64,14 +67,33 @@ class WPFH_FB_Checkout_Modal {
 			$country    = get_user_meta( $user->ID, 'billing_country', true );
 		}
 
-		wp_localize_script( 'wpfh-fb-bridge', 'wpfh_fb_config', array(
-			'ajax_url'        => admin_url( 'admin-ajax.php' ),
-			'user_email'      => $user_email,
-			'user_name'       => $user_name,
-			'user_firstname'  => $first_name,
-			'user_lastname'   => $last_name,
-			'user_country'    => $country,
-			'is_user_logged'  => is_user_logged_in(),
-		) );
+		$checkout_url  = function_exists( 'wc_get_checkout_url' ) ? wc_get_checkout_url() : home_url( '/checkout/' );
+		$downloads_url = function_exists( 'wc_get_account_endpoint_url' ) ? wc_get_account_endpoint_url( 'downloads' ) : home_url( '/my-account/downloads/' );
+		$checkout_logo = (string) get_option( 'wpfh_fb_checkout_logo', '' );
+		if ( '' === $checkout_logo ) {
+			$checkout_logo = (string) get_site_icon_url( 192 );
+		}
+		$currency_symbol = function_exists( 'get_woocommerce_currency_symbol' )
+			? html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' )
+			: '$';
+
+		wp_localize_script(
+			'wpfh-fb-bridge',
+			'wpfh_fb_config',
+			array(
+				'ajax_url'        => admin_url( 'admin-ajax.php' ),
+				'checkout_url'    => esc_url_raw( $checkout_url ),
+				'downloads_url'   => esc_url_raw( $downloads_url ),
+				'checkout_logo'   => esc_url_raw( $checkout_logo ),
+				'site_name'       => get_bloginfo( 'name' ),
+				'currency_symbol' => $currency_symbol,
+				'user_email'      => $user_email,
+				'user_name'       => $user_name,
+				'user_firstname'  => $first_name,
+				'user_lastname'   => $last_name,
+				'user_country'    => $country,
+				'is_user_logged'  => is_user_logged_in(),
+			)
+		);
 	}
 }

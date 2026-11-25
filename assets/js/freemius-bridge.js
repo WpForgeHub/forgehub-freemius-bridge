@@ -151,7 +151,9 @@
 				return;
 			}
 
-			// Pro Flow
+			// Pro Flow: Always route through WooCommerce checkout when a variation ID is present
+			// so both guests and logged-in customers create a pending WC order first, then open
+			// the prefilled Freemius checkout modal on the order-pay page.
 			var proId       = btn.attr('data-pro-id') || btn.attr('data-var-id');
 			var pluginId    = btn.attr('data-plugin-id') || '';
 			var publicKey   = btn.attr('data-public-key') || '';
@@ -161,14 +163,24 @@
 			var licenses    = btn.attr('data-licenses') || '1';
 			var productName = btn.attr('data-product-name') || siteName || 'Pro License';
 
-			// If user is already logged in on site, open Freemius checkout modal directly with prefilled user data.
-			if (cfg.is_user_logged && cfg.user_email && pluginId && typeof FS !== 'undefined' && FS.Checkout) {
+			if (proId) {
+				btn.find('.wpfh-btn-text').text('Redirecting to Checkout...');
+				window.location.href = buildCheckoutUrl(proId, {
+					billing_cycle: cycle,
+					pricing_id: pricingId,
+					licenses: licenses
+				});
+				return;
+			}
+
+			// Fallback for standalone buttons without a WooCommerce variation ID.
+			if (pluginId && typeof FS !== 'undefined' && FS.Checkout) {
 				var fsConfig = {
 					plugin_id:      pluginId,
 					plan_id:        planId,
 					billing_cycle:  cycle,
 					public_key:     publicKey,
-					user_email:     cfg.user_email,
+					user_email:     cfg.user_email || '',
 					user_firstname: cfg.user_firstname || cfg.user_name || '',
 					user_lastname:  cfg.user_lastname || '',
 					user_country:   cfg.user_country || ''
@@ -191,19 +203,7 @@
 						window.location.href = downloadsUrl + sep + 'welcome=1';
 					}
 				});
-				return;
 			}
-
-			// If not logged in, add the exact WooCommerce variation to cart and go to checkout.
-			if (!proId) {
-				return;
-			}
-			btn.find('.wpfh-btn-text').text('Redirecting to Checkout...');
-			window.location.href = buildCheckoutUrl(proId, {
-				billing_cycle: cycle,
-				pricing_id: pricingId,
-				licenses: licenses
-			});
 		});
 
 		// Shortcode Buy Button

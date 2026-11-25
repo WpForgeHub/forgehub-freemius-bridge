@@ -4,7 +4,7 @@ Tags: freemius, woocommerce, webhook, license manager, saas bridge
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.2.1
+Stable tag: 1.2.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -41,6 +41,10 @@ Selling WordPress plugins via Freemius Merchant of Record (MoR) gives you global
 4. Add the Webhook URL (`https://yourdomain.com/wp-json/wpfh/v1/freemius-webhook`) to your Freemius Developer Dashboard.
 
 == Changelog ==
+
+= 1.2.2 =
+* Enhancement: Route logged-in Pro buyers through WooCommerce checkout so a pending order is created before launching the prefilled Freemius Checkout modal on order-pay.
+* Enhancement: Webhook now matches and completes existing pending WooCommerce orders (avoiding duplicate orders), guards against back-to-back payment.created + license.created duplicates, and still creates a new completed order for direct Freemius purchases.
 
 = 1.2.1 =
 * Wire all 4 Pro modules (Replay Queue, Multi-Currency, Agency Seats, Affiliate Bridge), guard WooCommerce dependency, enforce fail-closed HMAC webhook verification & idempotency.

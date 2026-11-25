@@ -101,6 +101,23 @@ class WPFH_FB_Gateway_Freemius extends WC_Payment_Gateway {
 
 	public function process_payment( $order_id ) {
 		$order = wc_get_order( $order_id );
+		if ( ! $order ) {
+			return array( 'result' => 'failure' );
+		}
+
+		// Record the Freemius plugin ID on the pending order so the webhook can match and complete it.
+		$plugin_id = (string) get_option( 'wpfh_fb_default_plugin_id', '' );
+		foreach ( $order->get_items() as $item ) {
+			$meta_plugin = (string) get_post_meta( $item->get_product_id(), '_wpfh_freemius_plugin_id', true );
+			if ( '' !== $meta_plugin ) {
+				$plugin_id = $meta_plugin;
+				break;
+			}
+		}
+		if ( '' !== $plugin_id ) {
+			$order->update_meta_data( '_freemius_plugin_id', $plugin_id );
+			$order->save();
+		}
 
 		$order->update_status( 'pending', __( 'Awaiting Freemius checkout completion.', 'forgehub-freemius-bridge' ) );
 

@@ -170,32 +170,104 @@ class WPFH_FB_Webhook {
 			update_user_meta( $user_id, 'wpfh_licenses', $existing_licenses );
 		}
 
-		// 3. Create shadow WooCommerce Order ONLY for purchase/payment events.
+		// 3. Reconcile WooCommerce Order for purchase/payment events:
+		//    - If the customer started checkout on our site (matching pending/on-hold order), mark THAT order completed.
+		//    - If a sibling webhook event (e.g. license.created right after payment.created) already completed it, update meta without duplicating.
+		//    - If the customer bought directly on Freemius (no pending order here), create a new completed order for the user.
+		$order_id     = 0;
+		$order_action = 'none';
 		if ( class_exists( 'WooCommerce' ) && $user_id && $is_purchase_event ) {
-			$order = wc_create_order(
-				array(
-					'customer_id' => $user_id,
-					'status'      => 'completed',
-				)
-			);
+			$order = $this->find_pending_order( $user_id, $email, $plugin_id );
 
-			if ( is_wp_error( $order ) ) {
-				return new WP_Error( 'wpfh_fb_order_create_failed', $order->get_error_message(), 500 );
-			}
+			if ( $order ) {
+				if ( ! $order->get_customer_id() ) {
+					$order->set_customer_id( $user_id );
+				}
+				if ( '' === (string) $order->get_billing_first_name() && '' !== $first_name ) {
+					$order->set_billing_first_name( $first_name );
+				}
+				if ( '' === (string) $order->get_billing_last_name() && '' !== $last_name ) {
+					$order->set_billing_last_name( $last_name );
+				}
+				if ( '' === (string) $order->get_billing_email() && '' !== $email ) {
+					$order->set_billing_email( $email );
+				}
+				if ( (float) $order->get_total() <= 0 && $amount > 0 ) {
+					$order->set_total( $amount );
+				}
+				if ( '' !== $plugin_id ) {
+					$order->update_meta_data( '_freemius_plugin_id', $plugin_id );
+				}
+				if ( '' !== $license_key ) {
+					$order->update_meta_data( '_freemius_license_key', $license_key );
+				}
+				$order->update_meta_data( '_freemius_event_type', $event_type );
+				if ( '' !== $event_id ) {
+					$order->update_meta_data( '_freemius_event_id', $event_id );
+				}
+				$order->save();
 
-			$order->set_billing_first_name( $first_name );
-			$order->set_billing_last_name( $last_name );
-			$order->set_billing_email( $email );
-			$order->set_payment_method( 'freemius' );
-			$order->set_payment_method_title( 'Freemius MoR' );
-			$order->set_total( $amount );
-			$order->update_meta_data( '_freemius_plugin_id', $plugin_id );
-			$order->update_meta_data( '_freemius_license_key', $license_key );
-			$order->update_meta_data( '_freemius_event_type', $event_type );
-			if ( '' !== $event_id ) {
-				$order->update_meta_data( '_freemius_event_id', $event_id );
+				$order->payment_complete( $event_id );
+				if ( 'completed' !== $order->get_status() ) {
+					$order->update_status(
+						'completed',
+						sprintf( 'Freemius payment verified (%s).', $event_type )
+					);
+				} else {
+					$order->add_order_note(
+						sprintf( 'Freemius payment verified (%s).', $event_type )
+					);
+				}
+
+				$order_id     = $order->get_id();
+				$order_action = 'updated_pending';
+			} else {
+				$existing_order = $this->find_recent_completed_order( $user_id, $email, $plugin_id, $license_key, $event_type );
+				if ( $existing_order ) {
+					if ( '' !== $license_key && '' === (string) $existing_order->get_meta( '_freemius_license_key' ) ) {
+						$existing_order->update_meta_data( '_freemius_license_key', $license_key );
+					}
+					if ( '' !== $plugin_id && '' === (string) $existing_order->get_meta( '_freemius_plugin_id' ) ) {
+						$existing_order->update_meta_data( '_freemius_plugin_id', $plugin_id );
+					}
+					$existing_order->update_meta_data( '_freemius_last_event_type', $event_type );
+					$existing_order->save();
+
+					$order_id     = $existing_order->get_id();
+					$order_action = 'updated_existing';
+				} else {
+					$order = wc_create_order(
+						array(
+							'customer_id' => $user_id,
+							'status'      => 'completed',
+						)
+					);
+
+					if ( is_wp_error( $order ) ) {
+						return new WP_Error( 'wpfh_fb_order_create_failed', $order->get_error_message(), 500 );
+					}
+
+					$order->set_billing_first_name( $first_name );
+					$order->set_billing_last_name( $last_name );
+					$order->set_billing_email( $email );
+					$order->set_payment_method( 'wpfh_freemius' );
+					$order->set_payment_method_title( 'Freemius MoR' );
+					$order->set_total( $amount );
+					$order->update_meta_data( '_freemius_plugin_id', $plugin_id );
+					$order->update_meta_data( '_freemius_license_key', $license_key );
+					$order->update_meta_data( '_freemius_event_type', $event_type );
+					if ( '' !== $event_id ) {
+						$order->update_meta_data( '_freemius_event_id', $event_id );
+					}
+					$order->add_order_note(
+						sprintf( 'Direct Freemius purchase synced via webhook (%s).', $event_type )
+					);
+					$order->save();
+
+					$order_id     = $order->get_id();
+					$order_action = 'created_new';
+				}
 			}
-			$order->save();
 		}
 
 		if ( '' !== $idempotency_key ) {
@@ -205,9 +277,180 @@ class WPFH_FB_Webhook {
 		do_action( 'wpfh_fb_webhook_processed', $event_type, $data, $user_id );
 
 		return array(
-			'success' => true,
-			'message' => 'Freemius webhook processed successfully',
-			'user_id' => $user_id,
+			'success'      => true,
+			'message'      => 'Freemius webhook processed successfully',
+			'user_id'      => $user_id,
+			'order_id'     => $order_id,
+			'order_action' => $order_action,
 		);
+	}
+
+	/**
+	 * Find the most recent pending/on-hold WooCommerce order matching this customer and Freemius plugin.
+	 *
+	 * @param int    $user_id   WordPress user ID.
+	 * @param string $email     Customer email.
+	 * @param string $plugin_id Freemius plugin ID.
+	 * @return WC_Order|null
+	 */
+	private function find_pending_order( $user_id, $email, $plugin_id ) {
+		if ( ! function_exists( 'wc_get_orders' ) ) {
+			return null;
+		}
+
+		$default_plugin_id = (string) get_option( 'wpfh_fb_default_plugin_id', '' );
+
+		$candidates = wc_get_orders(
+			array(
+				'customer_id' => $user_id,
+				'status'      => array( 'pending', 'on-hold' ),
+				'limit'       => 10,
+				'orderby'     => 'date',
+				'order'       => 'DESC',
+			)
+		);
+
+		foreach ( $candidates as $order ) {
+			if ( ! $order instanceof WC_Order ) {
+				continue;
+			}
+			if ( $this->order_matches_plugin( $order, $plugin_id, $default_plugin_id ) ) {
+				return $order;
+			}
+		}
+
+		if ( '' !== $email ) {
+			$email_candidates = wc_get_orders(
+				array(
+					'billing_email' => $email,
+					'status'        => array( 'pending', 'on-hold' ),
+					'limit'         => 10,
+					'orderby'       => 'date',
+					'order'         => 'DESC',
+				)
+			);
+
+			foreach ( $email_candidates as $order ) {
+				if ( ! $order instanceof WC_Order ) {
+					continue;
+				}
+				if ( $this->order_matches_plugin( $order, $plugin_id, $default_plugin_id ) ) {
+					return $order;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Find an already-completed order for the same purchase (guards against back-to-back
+	 * payment.created + license.created webhooks creating a duplicate shadow order).
+	 *
+	 * @param int    $user_id     WordPress user ID.
+	 * @param string $email       Customer email.
+	 * @param string $plugin_id   Freemius plugin ID.
+	 * @param string $license_key Freemius license secret key.
+	 * @param string $event_type  Webhook event type.
+	 * @return WC_Order|null
+	 */
+	private function find_recent_completed_order( $user_id, $email, $plugin_id, $license_key, $event_type ) {
+		if ( ! function_exists( 'wc_get_orders' ) || 'subscription.renewal' === $event_type ) {
+			return null;
+		}
+
+		$default_plugin_id = (string) get_option( 'wpfh_fb_default_plugin_id', '' );
+		$now               = time();
+
+		$queries = array(
+			array(
+				'customer_id' => $user_id,
+				'status'      => array( 'completed', 'processing' ),
+				'limit'       => 10,
+				'orderby'     => 'date',
+				'order'       => 'DESC',
+			),
+		);
+		if ( '' !== $email ) {
+			$queries[] = array(
+				'billing_email' => $email,
+				'status'        => array( 'completed', 'processing' ),
+				'limit'         => 10,
+				'orderby'       => 'date',
+				'order'         => 'DESC',
+			);
+		}
+
+		$seen = array();
+		foreach ( $queries as $args ) {
+			$candidates = wc_get_orders( $args );
+			foreach ( $candidates as $order ) {
+				if ( ! $order instanceof WC_Order ) {
+					continue;
+				}
+				$oid = $order->get_id();
+				if ( isset( $seen[ $oid ] ) ) {
+					continue;
+				}
+				$seen[ $oid ] = true;
+
+				if ( ! $this->order_matches_plugin( $order, $plugin_id, $default_plugin_id ) ) {
+					continue;
+				}
+
+				$existing_key = (string) $order->get_meta( '_freemius_license_key' );
+				if ( '' !== $license_key && '' !== $existing_key && hash_equals( $existing_key, $license_key ) ) {
+					return $order;
+				}
+
+				$paid_date    = $order->get_date_paid();
+				$created_date = $order->get_date_created();
+				$ref_ts       = $paid_date ? $paid_date->getTimestamp() : ( $created_date ? $created_date->getTimestamp() : 0 );
+				if ( $ref_ts > 0 && ( $now - $ref_ts ) <= 600 ) {
+					return $order;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Check whether a WooCommerce order corresponds to a given Freemius plugin ID.
+	 *
+	 * @param WC_Order $order             WooCommerce order.
+	 * @param string   $plugin_id         Freemius plugin ID from webhook.
+	 * @param string   $default_plugin_id Site default Freemius plugin ID.
+	 * @return bool
+	 */
+	private function order_matches_plugin( $order, $plugin_id, $default_plugin_id ) {
+		$order_plugin_id = (string) $order->get_meta( '_freemius_plugin_id' );
+		if ( '' !== $plugin_id && '' !== $order_plugin_id ) {
+			return $order_plugin_id === $plugin_id;
+		}
+
+		$found_item_plugin = false;
+		foreach ( $order->get_items() as $item ) {
+			$item_plugin_id = (string) get_post_meta( $item->get_product_id(), '_wpfh_freemius_plugin_id', true );
+			if ( '' !== $item_plugin_id ) {
+				$found_item_plugin = true;
+				if ( '' !== $plugin_id && $item_plugin_id === $plugin_id ) {
+					return true;
+				}
+			}
+		}
+
+		if ( $found_item_plugin ) {
+			return false;
+		}
+
+		$payment_method = (string) $order->get_payment_method();
+		if ( in_array( $payment_method, array( 'wpfh_freemius', 'freemius' ), true ) ) {
+			if ( '' === $plugin_id || $plugin_id === $default_plugin_id ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

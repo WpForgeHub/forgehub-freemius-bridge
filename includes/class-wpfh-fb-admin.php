@@ -72,7 +72,8 @@ class WPFH_FB_Admin {
 		if ( $is_pro ) {
 			array_unshift( $links, $settings_link );
 		} else {
-			$pro_link = '<a href="https://wpforgehub.com/product/freemius-bridge/" style="color:#10b981;font-weight:700;" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Upgrade to Pro', 'forgehub-freemius-bridge' ) . '</a>';
+			$upgrade_url = function_exists( 'wpfh_fb_fs' ) ? wpfh_fb_fs()->get_upgrade_url() : 'https://wpforgehub.com/product/freemius-bridge/#pricing';
+			$pro_link    = '<a href="' . esc_url( $upgrade_url ) . '" style="color:#10b981;font-weight:700;" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Upgrade to Pro', 'forgehub-freemius-bridge' ) . '</a>';
 			array_unshift( $links, $settings_link, $pro_link );
 		}
 		return $links;

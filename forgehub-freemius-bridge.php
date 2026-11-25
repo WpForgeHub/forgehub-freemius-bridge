@@ -67,7 +67,7 @@ if ( ! function_exists( 'wpfh_fb_fs' ) ) {
 						return (bool) apply_filters( 'fs_is_plan__wpfh-freemius-bridge', false, $plan );
 					}
 					public function get_upgrade_url() {
-						return 'https://wpforgehub.com/plugins/wpfh-freemius-bridge/#pricing';
+						return 'https://wpforgehub.com/product/freemius-bridge/#pricing';
 					}
 				};
 			}

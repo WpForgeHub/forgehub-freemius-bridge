@@ -363,6 +363,7 @@ class WPFH_FB_Pricing_Table {
 			}
 		</style>
 
+		<div id="pricing" style="scroll-margin-top:90px;">
 		<div class="wpfh-pricing-bridge" id="wpfh-pricing-bridge" data-currency="<?php echo esc_attr( $currency ); ?>">
 			<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
 				<div>
@@ -464,6 +465,7 @@ class WPFH_FB_Pricing_Table {
 				<?php esc_html_e( '14-Day Money-Back Guarantee • Instant License Delivery • 256-Bit SSL Encryption', 'forgehub-freemius-bridge' ); ?>
 			</div>
 		</div>
+		</div>
 		<?php
 	}
 
@@ -515,6 +517,7 @@ class WPFH_FB_Pricing_Table {
 
 		ob_start();
 		?>
+		<div id="pricing" style="scroll-margin-top:90px;">
 		<div class="wpfh-pricing-bridge"
 			data-plugin-id="<?php echo esc_attr( $atts['plugin_id'] ); ?>"
 			data-public-key="<?php echo esc_attr( $atts['public_key'] ); ?>"
@@ -545,6 +548,7 @@ class WPFH_FB_Pricing_Table {
 					<button type="button" class="wpfh-buy-btn" data-licenses="1"><?php esc_html_e( 'Get Started', 'forgehub-freemius-bridge' ); ?></button>
 				</div>
 			</div>
+		</div>
 		</div>
 		<?php
 		return ob_get_clean();

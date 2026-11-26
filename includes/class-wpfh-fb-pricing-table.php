@@ -277,9 +277,10 @@ class WPFH_FB_Pricing_Table {
 			return;
 		}
 
-		$parsed = self::get_product_tiers( $product );
-		$free   = $parsed['free'];
-		$tiers  = array_values( $parsed['tiers'] );
+		$parsed    = self::get_product_tiers( $product );
+		$show_free = (bool) apply_filters( 'wpfh_fb_show_free_card', true, $product );
+		$free      = $show_free ? $parsed['free'] : null;
+		$tiers     = array_values( $parsed['tiers'] );
 
 		if ( empty( $tiers ) && empty( $free ) ) {
 			return;
@@ -321,6 +322,8 @@ class WPFH_FB_Pricing_Table {
 
 		$free_var_id = $free ? $free['variation_id'] : 0;
 		$period_text = 'lifetime' === $default_cycle ? __( 'lifetime', 'forgehub-freemius-bridge' ) : __( 'yr', 'forgehub-freemius-bridge' );
+		$heading    = (string) apply_filters( 'wpfh_fb_pricing_heading', __( 'Choose Your License & Edition', 'forgehub-freemius-bridge' ), $product );
+		$subheading = (string) apply_filters( 'wpfh_fb_pricing_subheading', __( 'Select your plan below to continue.', 'forgehub-freemius-bridge' ), $product );
 		?>
 		<style>
 			.single-product form.variations_form { display: none !important; }
@@ -367,8 +370,8 @@ class WPFH_FB_Pricing_Table {
 		<div class="wpfh-pricing-bridge" id="wpfh-pricing-bridge" data-currency="<?php echo esc_attr( $currency ); ?>">
 			<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
 				<div>
-					<h3 style="margin:0;font-size:18px;color:#38bdf8;font-weight:800;letter-spacing:-0.02em;"><?php esc_html_e( 'Choose Your License & Edition', 'forgehub-freemius-bridge' ); ?></h3>
-					<p style="margin:4px 0 0;font-size:13px;color:#94a3b8;"><?php esc_html_e( 'Select your plan below to continue.', 'forgehub-freemius-bridge' ); ?></p>
+					<h3 style="margin:0;font-size:18px;color:#38bdf8;font-weight:800;letter-spacing:-0.02em;"><?php echo esc_html( $heading ); ?></h3>
+					<p style="margin:4px 0 0;font-size:13px;color:#cbd5e1;"><?php echo esc_html( $subheading ); ?></p>
 				</div>
 				<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
 				<?php do_action( 'wpfh_fb_pricing_header_controls', $display_currency ); ?>
@@ -411,7 +414,7 @@ class WPFH_FB_Pricing_Table {
 					$disp_var   = $active ? (string) $active['variation_id'] : '';
 					$disp_pid   = $active ? (string) $active['pricing_id'] : '';
 					$is_first   = ( 0 === $idx && 'pro' === $initial_type );
-					$sub_color  = ! empty( $tier['badge'] ) ? '#10b981' : ( 'unlimited' === $tier['licenses'] ? '#a855f7' : '#38bdf8' );
+					$sub_color  = ! empty( $tier['badge'] ) ? '#34d399' : ( 'unlimited' === $tier['licenses'] ? '#c084fc' : '#38bdf8' );
 					?>
 				<div class="wpfh-plan-opt<?php echo $is_first ? ' selected' : ''; ?>"
 					data-plan-type="pro"
@@ -425,7 +428,7 @@ class WPFH_FB_Pricing_Table {
 					data-lifetime="<?php echo esc_attr( $lft_price ); ?>"
 					data-licenses="<?php echo esc_attr( (string) $tier['licenses'] ); ?>">
 					<?php if ( ! empty( $tier['badge'] ) ) : ?>
-						<div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:0.05em;"><?php echo esc_html( $tier['badge'] ); ?></div>
+						<div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#10b981;color:#022c22;font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:0.05em;"><?php echo esc_html( $tier['badge'] ); ?></div>
 					<?php endif; ?>
 					<div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;"><?php echo esc_html( $tier['label'] ); ?></div>
 					<div class="wpfh-price-val" style="font-size:22px;font-weight:800;color:#fff;margin:6px 0;"><?php echo esc_html( $currency . $disp_price ); ?><span style="font-size:11px;color:#94a3b8;"><?php echo 'lifetime' === $default_cycle ? ' ' . esc_html__( 'lifetime', 'forgehub-freemius-bridge' ) : '/' . esc_html__( 'yr', 'forgehub-freemius-bridge' ); ?></span></div>

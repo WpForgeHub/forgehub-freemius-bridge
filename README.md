@@ -60,11 +60,27 @@
 
 ---
 
+## 📸 Admin Preview
+
+<p align="center">
+  <img src="assets/screenshot-1.png" alt="ForgeHub Freemius Bridge WordPress Admin Settings" width="100%" />
+</p>
+
+---
+
 ## 🛠️ Installation
 
 1. Upload the `forgehub-freemius-bridge` folder to `/wp-content/plugins/`.
 2. Activate the plugin through the **Plugins** menu in WordPress.
 3. Navigate to **WooCommerce -> Settings -> Freemius Bridge** to configure webhook credentials.
+
+---
+
+## 🔗 Links & Resources
+
+- **Plugin Page:** [https://wpforgehub.com/product/freemius-bridge/](https://wpforgehub.com/product/freemius-bridge/)
+- **Documentation & Help:** [wpforgehub.com/docs](https://wpforgehub.com/docs/)
+- **More Free WordPress Plugins:** [wpforgehub.com](https://wpforgehub.com/#products)
 
 ---
 

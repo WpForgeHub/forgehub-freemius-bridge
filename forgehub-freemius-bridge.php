@@ -54,6 +54,8 @@ if ( ! function_exists( 'wpfh_fb_fs' ) ) {
 						),
 					),
 				) );
+				// Freemius forbids uninstall.php in premium builds; use its after_uninstall hook there.
+				$wpfh_fb_fs->add_action( 'after_uninstall', 'wpfh_fb_uninstall_cleanup' );
 			} else {
 				// Fallback object for Free / Filter-based Pro distribution
 				$wpfh_fb_fs = new class {
@@ -77,6 +79,21 @@ if ( ! function_exists( 'wpfh_fb_fs' ) ) {
 	}
 
 	wpfh_fb_fs();
+}
+
+/**
+ * Removes plugin options, transients, and scheduled hooks (Freemius premium build; free build uses uninstall.php).
+ */
+function wpfh_fb_uninstall_cleanup() {
+	delete_option( 'wpfh_fb_secret_key' );
+	delete_option( 'wpfh_fb_default_plugin_id' );
+	delete_option( 'wpfh_fb_default_plan_id' );
+	delete_option( 'wpfh_fb_default_public_key' );
+	delete_option( 'wpfh_fb_checkout_logo' );
+	delete_option( 'wpfh_fb_checkout_name' );
+	delete_option( 'wpfh_fb_webhook_dead_letter_queue' );
+	delete_transient( 'wpfh_fb_exchange_rates' );
+	wp_clear_scheduled_hook( 'wpfh_fb_retry_webhook_event' );
 }
 
 /**

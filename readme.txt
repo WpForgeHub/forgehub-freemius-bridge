@@ -40,6 +40,10 @@ Selling WordPress plugins via Freemius Merchant of Record (MoR) gives you global
 3. Configure your Freemius Secret Key and Plugin ID under **WooCommerce > Settings > Freemius Bridge**.
 4. Add the Webhook URL (`https://yourdomain.com/wp-json/wpfh/v1/freemius-webhook`) to your Freemius Developer Dashboard.
 
+== Screenshots ==
+
+1. Freemius Bridge WooCommerce settings tab for webhook sync, checkout modal, pricing bridge, and license automation.
+
 == Changelog ==
 
 = 1.2.2 =
